@@ -40,7 +40,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('✓'), findsOneWidget);
+      expect(find.byType(SofIcon), findsOneWidget);
     });
 
     testWidgets('SofLiveCapsule renders title and toggles expansion', (tester) async {
@@ -51,7 +51,7 @@ void main() {
             textDirection: TextDirection.ltr,
             child: Center(
               child: SofLiveCapsule(
-                leading: Text('♪'),
+                leading: SofIcon(SofIcons.music),
                 title: Text('Now Playing'),
                 expandedChild: Text('Expanded Player Details'),
               ),

@@ -64,7 +64,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             SofButton(
               variant: SofButtonVariant.filled,
-              leading: const Text('📋'),
+              leading: const SofIcon(SofIcons.clipboard, size: 16, color: Color(0xFFFFFFFF)),
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: code));
                 Navigator.of(context).pop();
@@ -196,7 +196,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                   color: colors.accentSubtle,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Text('📐', style: TextStyle(color: colors.accent, fontSize: 18)),
+                                child: SofIcon(SofIcons.ruler, color: colors.accent, size: 18),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
@@ -249,7 +249,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                                   color: colors.accentSubtle,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Text('🌙', style: TextStyle(color: colors.accent, fontSize: 18)),
+                                child: SofIcon(SofIcons.moon, color: colors.accent, size: 18),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
@@ -313,7 +313,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         ),
                         const SizedBox(width: 8),
                         _buildCodeButton('SofLiveCapsule', '''SofLiveCapsule(
-  leading: Text('⚡'),
+  leading: SofIcon(SofIcons.zap),
   title: Text('导出 4K 视频中...'),
   trailing: SofBadge(label: Text('78%')),
   expandedChild: Row(
@@ -329,7 +329,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     Text('灵感来自 HyperOS 与 iOS 灵动岛。常态为极简悬浮药丸，点击丝滑形变展开为全功能交互卡片。', style: typography.caption),
                     const SizedBox(height: 18),
                     SofLiveCapsule(
-                      leading: const Text('⚡'),
+                      leading: const SofIcon(SofIcons.zap, size: 16),
                       title: const Text('导出 4K 柔光宣传片...'),
                       trailing: const SofBadge(label: Text('78%'), variant: SofBadgeVariant.accent),
                       expandedChild: Row(
@@ -397,7 +397,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 width: 360,
                 child: SofAdaptiveTile(
                   variant: SofSurfaceVariant.ambient,
-                  icon: const Text('🎧', style: TextStyle(fontSize: 18)),
+                  icon: const SofIcon(SofIcons.headphones, size: 18),
                   value: const Text('空间音频增强'),
                   title: const Text('杜比全景声已激活'),
                   subtitle: const Text('动态头部追踪已建立低延迟连接'),
@@ -411,7 +411,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       const SizedBox(width: 8),
                       _buildCodeButton('SofAdaptiveTile', '''SofAdaptiveTile(
   variant: SofSurfaceVariant.ambient,
-  icon: Text('🎧'),
+  icon: SofIcon(SofIcons.headphones),
   value: Text('空间音频增强'),
   title: Text('杜比全景声已激活'),
   subtitle: Text('动态头部追踪'),
@@ -503,26 +503,26 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   runSpacing: 12,
                   children: [
                     SofIconButton(
-                      icon: const Text('★'),
+                      icon: const SofIcon(SofIcons.star, size: 18),
                       variant: SofButtonVariant.filled,
                       onPressed: () {},
                       tooltip: '收藏',
                     ),
                     SofIconButton(
-                      icon: const Text('♥'),
+                      icon: const SofIcon(SofIcons.heart, size: 18),
                       variant: SofButtonVariant.subtle,
                       onPressed: () {},
                       tooltip: '喜欢',
                     ),
                     SofIconButton(
-                      icon: const Text('⚡'),
+                      icon: const SofIcon(SofIcons.zap, size: 18),
                       shape: SofIconButtonShape.circle,
                       variant: SofButtonVariant.outlined,
                       onPressed: () {},
                       tooltip: '圆形闪电',
                     ),
                     SofIconButton(
-                      icon: const Text('⚙'),
+                      icon: const SofIcon(SofIcons.settings, size: 18),
                       variant: SofButtonVariant.ghost,
                       onPressed: () {},
                       tooltip: '系统偏好设置',
@@ -674,8 +674,8 @@ SofSlider(
                 SofTextField(
                   controller: _inputController,
                   placeholder: '请输入组件或主题名称...',
-                  prefix: const Text('✎'),
-                  suffix: const Text('✓'),
+                  prefix: const SofIcon(SofIcons.edit, size: 16),
+                  suffix: const SofIcon(SofIcons.check, size: 16),
                   helperText: '已适配系统原生输入法、光标绘制与读屏标签支持',
                 ),
               ],
@@ -751,7 +751,7 @@ SofSlider(
               children: [
                 SofButton(
                   variant: SofButtonVariant.subtle,
-                  leading: const Text('🪟'),
+                  leading: const SofIcon(SofIcons.layout, size: 16),
                   onPressed: () {
                     showSofDialog(
                       context: context,
@@ -774,7 +774,7 @@ SofSlider(
                 ),
                 SofButton(
                   variant: SofButtonVariant.subtle,
-                  leading: const Text('📜'),
+                  leading: const SofIcon(SofIcons.fileText, size: 16),
                   onPressed: () {
                     showSofSheet(
                       context: context,
@@ -802,12 +802,12 @@ SofSlider(
                 ),
                 SofButton(
                   variant: SofButtonVariant.subtle,
-                  leading: const Text('🔔'),
+                  leading: const SofIcon(SofIcons.bell, size: 16),
                   onPressed: () {
                     showSofToast(
                       context: context,
                       message: '配置与设计 Token 已成功保存',
-                      icon: const Text('✓'),
+                      icon: const SofIcon(SofIcons.check, size: 16, color: Color(0xFFFFFFFF)),
                       variant: SofBadgeVariant.success,
                     );
                   },

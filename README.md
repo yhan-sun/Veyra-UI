@@ -10,36 +10,37 @@
 
 ---
 
-## 🌐 在线体验 (Live Web Demo)
+## 在线体验 (Live Web Demo)
 
 Soflume UI 现已通过 GitHub Actions 自动化部署至 GitHub Pages：
 
-🔗 **[https://yhan-sun.github.io/Veyra-UI/](https://yhan-sun.github.io/Veyra-UI/)**
+**[https://yhan-sun.github.io/Veyra-UI/](https://yhan-sun.github.io/Veyra-UI/)**
 
 包含：
 - **全组件交互画廊 (Component Gallery)**：微交互、弹簧动效、代码示例（一键查看复制）。
 - **实时设计系统与主题编辑器 (Design System & Theme Editor)**：实时调色盘、G2 连续超椭圆圆角阶梯、间距网格诊断。
 - **4 大旗舰级原生实装 App**：
-  1. ⚙️ **设置中心 (Settings App)**
-  2. 🎵 **柔光音乐播放器 (Music App)**
-  3. 📁 **自适应文件管理器 (File Manager)**
-  4. 📊 **数据与监控看板 (Analytics Dashboard)**
+  1. **设置中心 (Settings App)**
+  2. **柔光音乐播放器 (Music App)**
+  3. **自适应文件管理器 (File Manager)**
+  4. **数据与监控看板 (Analytics Dashboard)**
 
 ---
 
-## 🌟 设计哲学与特点
+## 设计哲学与特点
 
 Soflume UI 是一套面向移动端（iOS / Android）、平板、折叠屏与桌面端（macOS / Windows / Linux）的现代化 Flutter 组件库。吸收 **vivo OriginOS**（连续动画与自然光学）、**华为 HarmonyOS**（空间秩序与多终端协同）、**OPPO ColorOS**（精致光影与微交互）、**小米 HyperOS**（动态胶囊与灵动触感）以及 **Apple iOS / macOS**（交互一致性与可访问性）的设计精髓，形成独立且高度统一的 **Soft Lumen（柔光美学）** 视觉语言。
 
-- 🌊 **G2 连续曲率圆角 (Continuous Squircle)**：告别生硬圆角，提供真正物理级平滑过渡的高级超椭圆轮廓（`SofSquircleBorder`）。
-- ⚡ **物理弹簧微交互 (Harmonic Springs)**：全套弹簧力学阻尼曲线（`SofSpringCurve`），按下回弹自然，手势随时可中断。
-- 🔮 **Soft Lumen 材质模型**：提供 `Solid`（高性能实色）、`Frost`（18σ 动态高斯半透雾化）、`Ambient`（柔光漫射渐变）与 `Floating`（多阶弥散阴影）四重材质。
-- 📱 **多设备全场景自适应 (Responsive & Adaptive)**：内置 `Compact` (<600dp)、`Medium` (600–1023dp) 与 `Expanded` (>=1024dp) 断点及密度系统（`compact`, `comfortable`, `spacious`）。
-- ♿ **高质感无障碍友好**：严格遵循 WCAG AA 文本对比度标准，全组件内置键盘焦点光晕（`SofFocusRing`）与屏幕阅读语义支持。
+- **G2 连续曲率圆角 (Continuous Squircle)**：告别生硬圆角，提供真正物理级平滑过渡的高级超椭圆轮廓（`SofSquircleBorder`）。
+- **物理弹簧微交互 (Harmonic Springs)**：全套弹簧力学阻尼曲线（`SofSpringCurve`），按下回弹自然，手势随时可中断。
+- **全矢量光学 SVG 体系 (Optical Vector Icons)**：全库拒绝平台割裂的 Emoji，全内置 24x24 几何光学规范平滑端点 SVG 图标集（`SofIcon` & `SofIcons`）。
+- **Soft Lumen 材质模型**：提供 `Solid`（高性能实色）、`Frost`（18σ 动态高斯半透雾化）、`Ambient`（柔光漫射渐变）与 `Floating`（多阶弥散阴影）四重材质。
+- **多设备全场景自适应 (Responsive & Adaptive)**：内置 `Compact` (<600dp)、`Medium` (600–1023dp) 与 `Expanded` (>=1024dp) 断点及密度系统（`compact`, `comfortable`, `spacious`）。
+- **高质感无障碍友好**：严格遵循 WCAG AA 文本对比度标准，全组件内置键盘焦点光晕（`SofFocusRing`）与屏幕阅读语义支持。
 
 ---
 
-## 📦 架构组织 (Monorepo)
+## 架构组织 (Monorepo)
 
 ```text
 Veyra-UI/
@@ -48,7 +49,7 @@ Veyra-UI/
 ├── packages/
 │   └── soflume_ui/                  # 核心组件库 Package
 │       ├── lib/
-│       │   ├── foundation/          # Tokens, Theme, Shapes (Squircle), Motion, Layout
+│       │   ├── foundation/          # Tokens, Theme, Shapes (Squircle), Motion, Layout, Vector Icons
 │       │   ├── primitives/          # SofPressable, SofSurface, SofFocusRing
 │       │   ├── components/          # Button, Toggle, Input, Card, Slider, Tabs, Dialog...
 │       │   └── signature/           # FluidSheet, MorphingButton, LiveCapsule, AdaptiveTile...
@@ -68,7 +69,7 @@ Veyra-UI/
 
 ---
 
-## 🚀 快速上手
+## 快速上手
 
 ### 1. 添加依赖
 
@@ -105,6 +106,7 @@ class MyApp extends StatelessWidget {
           child: Center(
             child: SofButton(
               variant: SofButtonVariant.filled,
+              leading: const SofIcon(SofIcons.zap, size: 18),
               onPressed: () {},
               child: const Text('开始体验 Soflume'),
             ),
@@ -118,7 +120,7 @@ class MyApp extends StatelessWidget {
 
 ---
 
-## 💎 代表性组件与品牌特色
+## 代表性组件与品牌特色
 
 | 标志性组件 | 功能说明 |
 |---|---|
@@ -128,10 +130,11 @@ class MyApp extends StatelessWidget {
 | **SofFloatingNavigation** | 悬浮磨砂玻璃交互底栏，带物理弹簧滑动指示气泡。 |
 | **SofAdaptiveTile** | 带有动态柔光呼吸效果的多功能数据与流媒体磁贴。 |
 | **SofLuminousSlider** | 带有跟随拇指位置发射柔光微晕（Soft Lumen Glow）的高级滑块。 |
+| **SofIcon & SofIcons** | 原生光学级平滑端点 24x24 矢量 SVG 图标集，自动适配主题色与尺寸。 |
 
 ---
 
-## 🧪 自动化测试与工程质量
+## 自动化测试与工程质量
 
 在 `packages/soflume_ui` 与 `example` 目录下均已建立并通过严格测试门禁：
 

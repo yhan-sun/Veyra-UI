@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import '../foundation/theme/theme.dart';
 import '../foundation/shapes/squircle_border.dart';
 import '../foundation/motion/spring_curve.dart';
+import '../foundation/icons/icon.dart';
+import '../foundation/icons/soflume_icons.dart';
 import '../primitives/pressable.dart';
 
 /// State machine phases for [SofMorphingButton].
@@ -73,25 +75,19 @@ class SofMorphingButton extends StatelessWidget {
 
       case SofMorphingState.success:
         bgColor = colors.success;
-        innerContent = const Text(
-          '✓',
-          style: TextStyle(
-            color: Color(0xFFFFFFFF),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+        innerContent = const SofIcon(
+          SofIcons.check,
+          size: 20,
+          color: Color(0xFFFFFFFF),
         );
         break;
 
       case SofMorphingState.error:
         bgColor = colors.danger;
-        innerContent = const Text(
-          '✕',
-          style: TextStyle(
-            color: Color(0xFFFFFFFF),
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+        innerContent = const SofIcon(
+          SofIcons.x,
+          size: 18,
+          color: Color(0xFFFFFFFF),
         );
         break;
     }

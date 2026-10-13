@@ -17,30 +17,34 @@ class _MusicAppState extends State<MusicApp> {
   bool _isShuffle = false;
   int _activeTrackIndex = 0;
 
-  final List<Map<String, String>> _playlist = [
+  final List<Map<String, dynamic>> _playlist = [
     {
       'title': 'Luminous Waves',
       'artist': 'Soflume Symphony',
       'duration': '3:45',
-      'cover': '🌊',
+      'svg': SofIcons.activity,
+      'color': const Color(0xFF5362E8),
     },
     {
       'title': 'Midnight Superellipse',
       'artist': 'Origin Sound',
       'duration': '4:12',
-      'cover': '🌙',
+      'svg': SofIcons.moon,
+      'color': const Color(0xFF9EA8FF),
     },
     {
       'title': 'Continuous Curvature',
       'artist': 'Harmonic Beats',
       'duration': '3:18',
-      'cover': '✨',
+      'svg': SofIcons.sparkles,
+      'color': const Color(0xFF8B5CF6),
     },
     {
       'title': 'Spring Oscillation',
       'artist': 'Physics Lab',
       'duration': '2:55',
-      'cover': '⚡',
+      'svg': SofIcons.zap,
+      'color': const Color(0xFFF79009),
     },
   ];
 
@@ -72,7 +76,11 @@ class _MusicAppState extends State<MusicApp> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     alignment: Alignment.center,
-                    child: Text(track['cover']!, style: const TextStyle(fontSize: 20)),
+                    child: SofIcon(
+                      track['svg'] as String,
+                      size: 20,
+                      color: track['color'] as Color,
+                    ),
                   ),
                   title: Text(track['title']!),
                   subtitle: Text(track['artist']!),
@@ -117,9 +125,10 @@ class _MusicAppState extends State<MusicApp> {
         children: [
           // Live Status Capsule at top
           SofLiveCapsule(
-            leading: Text(
-              _isPlaying ? '▶' : '⏸',
-              style: TextStyle(color: colors.accent, fontSize: 13),
+            leading: SofIcon(
+              _isPlaying ? SofIcons.play : SofIcons.pause,
+              color: colors.accent,
+              size: 14,
             ),
             title: Text('${currentTrack['title']} • ${currentTrack['artist']}'),
             trailing: Container(
@@ -183,9 +192,10 @@ class _MusicAppState extends State<MusicApp> {
                       borderRadius: BorderRadius.circular(26),
                     ),
                     alignment: Alignment.center,
-                    child: Text(
-                      currentTrack['cover']!,
-                      style: const TextStyle(fontSize: 88),
+                    child: SofIcon(
+                      currentTrack['svg'] as String,
+                      size: 72,
+                      color: const Color(0xFFFFFFFF),
                     ),
                   ),
                 ],
@@ -223,12 +233,10 @@ class _MusicAppState extends State<MusicApp> {
                 ),
                 SofIconButton(
                   variant: _isLiked ? SofButtonVariant.subtle : SofButtonVariant.ghost,
-                  icon: Text(
-                    _isLiked ? '♥' : '♡',
-                    style: TextStyle(
-                      fontSize: 22,
-                      color: _isLiked ? colors.danger : colors.contentSecondary,
-                    ),
+                  icon: SofIcon(
+                    _isLiked ? SofIcons.heartFilled : SofIcons.heart,
+                    size: 22,
+                    color: _isLiked ? colors.danger : colors.contentSecondary,
                   ),
                   onPressed: () => setState(() => _isLiked = !_isLiked),
                 ),
@@ -270,13 +278,17 @@ class _MusicAppState extends State<MusicApp> {
             children: [
               SofIconButton(
                 variant: _isShuffle ? SofButtonVariant.subtle : SofButtonVariant.ghost,
-                icon: const Text('🔀', style: TextStyle(fontSize: 18)),
+                icon: SofIcon(
+                  SofIcons.shuffle,
+                  size: 18,
+                  color: _isShuffle ? colors.accent : colors.contentSecondary,
+                ),
                 onPressed: () => setState(() => _isShuffle = !_isShuffle),
               ),
               SofIconButton(
                 size: SofButtonSize.large,
                 variant: SofButtonVariant.ghost,
-                icon: const Text('⏮', style: TextStyle(fontSize: 22)),
+                icon: const SofIcon(SofIcons.skipBack, size: 20),
                 onPressed: () {
                   setState(() {
                     _activeTrackIndex = (_activeTrackIndex - 1 + _playlist.length) % _playlist.length;
@@ -290,15 +302,16 @@ class _MusicAppState extends State<MusicApp> {
                 variant: SofButtonVariant.filled,
                 borderRadius: BorderRadius.circular(28),
                 onPressed: () => setState(() => _isPlaying = !_isPlaying),
-                child: Text(
-                  _isPlaying ? ' ⏸ ' : ' ▶ ',
-                  style: const TextStyle(fontSize: 20),
+                child: SofIcon(
+                  _isPlaying ? SofIcons.pause : SofIcons.play,
+                  size: 20,
+                  color: const Color(0xFFFFFFFF),
                 ),
               ),
               SofIconButton(
                 size: SofButtonSize.large,
                 variant: SofButtonVariant.ghost,
-                icon: const Text('⏭', style: TextStyle(fontSize: 22)),
+                icon: const SofIcon(SofIcons.skipForward, size: 20),
                 onPressed: () {
                   setState(() {
                     _activeTrackIndex = (_activeTrackIndex + 1) % _playlist.length;
@@ -308,7 +321,7 @@ class _MusicAppState extends State<MusicApp> {
               ),
               SofIconButton(
                 variant: SofButtonVariant.ghost,
-                icon: const Text('≡', style: TextStyle(fontSize: 22)),
+                icon: const SofIcon(SofIcons.list, size: 20),
                 onPressed: _showQueueSheet,
               ),
             ],
@@ -320,7 +333,7 @@ class _MusicAppState extends State<MusicApp> {
             variant: SofSurfaceVariant.ambient,
             title: const Text('Soflume Spatial Audio'),
             subtitle: const Text('Dolby Atmos continuous soundscape enabled'),
-            icon: const Text('🎧', style: TextStyle(fontSize: 18)),
+            icon: const SofIcon(SofIcons.headphones, size: 20),
             statusBadge: const SofBadge(label: Text('Hi-Res Lossless'), variant: SofBadgeVariant.accent),
             onPressed: () {
               showSofToast(

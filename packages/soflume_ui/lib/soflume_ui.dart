@@ -15,6 +15,10 @@ export 'foundation/tokens/motion.dart';
 export 'foundation/shapes/squircle_border.dart';
 export 'foundation/motion/spring_curve.dart';
 
+// Foundation - Vector Icons
+export 'foundation/icons/icon.dart';
+export 'foundation/icons/soflume_icons.dart';
+
 // Foundation - Layout & Density
 export 'foundation/layout/density.dart';
 export 'foundation/layout/breakpoints.dart';

@@ -20,7 +20,8 @@ class _FileManagerAppState extends State<FileManagerApp> {
     {
       'name': 'Design-Tokens-v1.json',
       'type': 'json',
-      'icon': '📄',
+      'svg': SofIcons.fileText,
+      'color': const Color(0xFF5362E8),
       'size': '24 KB',
       'updated': 'Today 14:20',
       'badge': 'Tokens',
@@ -28,7 +29,8 @@ class _FileManagerAppState extends State<FileManagerApp> {
     {
       'name': 'Soflume-Architecture.pdf',
       'type': 'pdf',
-      'icon': '📑',
+      'svg': SofIcons.file,
+      'color': const Color(0xFFF04438),
       'size': '4.2 MB',
       'updated': 'Yesterday',
       'badge': 'Doc',
@@ -36,7 +38,8 @@ class _FileManagerAppState extends State<FileManagerApp> {
     {
       'name': 'Brand-Identity-Assets.zip',
       'type': 'archive',
-      'icon': '📦',
+      'svg': SofIcons.archive,
+      'color': const Color(0xFFF79009),
       'size': '18.6 MB',
       'updated': 'Oct 10',
       'badge': null,
@@ -44,7 +47,8 @@ class _FileManagerAppState extends State<FileManagerApp> {
     {
       'name': 'origin_squircle_shader.frag',
       'type': 'code',
-      'icon': '⚡',
+      'svg': SofIcons.code,
+      'color': const Color(0xFF12B76A),
       'size': '3.1 KB',
       'updated': 'Oct 09',
       'badge': 'Shader',
@@ -52,7 +56,8 @@ class _FileManagerAppState extends State<FileManagerApp> {
     {
       'name': 'Gallery-Keynote-Presentation.key',
       'type': 'presentation',
-      'icon': '📊',
+      'svg': SofIcons.barChart,
+      'color': const Color(0xFF9EA8FF),
       'size': '12.8 MB',
       'updated': 'Oct 08',
       'badge': null,
@@ -60,7 +65,8 @@ class _FileManagerAppState extends State<FileManagerApp> {
     {
       'name': 'Music-Cover-Lumen-Art.png',
       'type': 'image',
-      'icon': '🖼',
+      'svg': SofIcons.image,
+      'color': const Color(0xFF8B5CF6),
       'size': '2.4 MB',
       'updated': 'Oct 05',
       'badge': 'Artwork',
@@ -190,7 +196,7 @@ class _FileManagerAppState extends State<FileManagerApp> {
                     child: SofTextField(
                       controller: _searchController,
                       placeholder: 'Search files and documents...',
-                      prefix: const Text('🔍'),
+                      prefix: const SofIcon(SofIcons.search, size: 16),
                       onChanged: (q) => setState(() => _searchQuery = q),
                     ),
                   ),
@@ -206,10 +212,10 @@ class _FileManagerAppState extends State<FileManagerApp> {
             // Files Listing Area
             Expanded(
               child: filteredFiles.isEmpty
-                  ? const SofEmptyState(
-                      icon: Text('📁', style: TextStyle(fontSize: 32)),
-                      title: Text('No Files Found'),
-                      message: Text('Try adjusting your search query or select another folder.'),
+                  ? SofEmptyState(
+                      icon: SofIcon(SofIcons.folder, size: 40, color: colors.contentSecondary),
+                      title: const Text('No Files Found'),
+                      message: const Text('Try adjusting your search query or select another folder.'),
                     )
                   : SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -251,10 +257,10 @@ class _FileManagerAppState extends State<FileManagerApp> {
                       ),
                     ),
                   ),
-                  _buildSidebarItem(0, '📁 iCloud Drive', '12'),
-                  _buildSidebarItem(1, '📥 Downloads', '5'),
-                  _buildSidebarItem(2, '⭐ Starred', '8'),
-                  _buildSidebarItem(3, '🗑 Trash', '0'),
+                  _buildSidebarItem(0, SofIcons.cloud, 'iCloud Drive', '12'),
+                  _buildSidebarItem(1, SofIcons.download, 'Downloads', '5'),
+                  _buildSidebarItem(2, SofIcons.star, 'Starred', '8'),
+                  _buildSidebarItem(3, SofIcons.trash, 'Trash', '0'),
                   const SizedBox(height: 24),
                   Padding(
                     padding: const EdgeInsets.only(left: 10, bottom: 16),
@@ -290,7 +296,7 @@ class _FileManagerAppState extends State<FileManagerApp> {
     );
   }
 
-  Widget _buildSidebarItem(int index, String label, String count) {
+  Widget _buildSidebarItem(int index, String svg, String label, String count) {
     final theme = SoflumeTheme.of(context);
     final colors = theme.colors;
     final isSelected = index == _selectedSidebarCategory;
@@ -307,13 +313,23 @@ class _FileManagerAppState extends State<FileManagerApp> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? colors.accent : colors.contentPrimary,
-              ),
+            Row(
+              children: [
+                SofIcon(
+                  svg,
+                  size: 16,
+                  color: isSelected ? colors.accent : colors.contentSecondary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected ? colors.accent : colors.contentPrimary,
+                  ),
+                ),
+              ],
             ),
             Text(
               count,
@@ -333,6 +349,7 @@ class _FileManagerAppState extends State<FileManagerApp> {
       spacing: 16,
       runSpacing: 16,
       children: files.map((file) {
+        final color = file['color'] as Color;
         return SizedBox(
           width: 170,
           child: SofCard(
@@ -345,7 +362,14 @@ class _FileManagerAppState extends State<FileManagerApp> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(file['icon'] as String, style: const TextStyle(fontSize: 32)),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: SofIcon(file['svg'] as String, size: 24, color: color),
+                    ),
                     if (file['badge'] != null)
                       SofBadge(label: Text(file['badge'] as String), variant: SofBadgeVariant.accent),
                   ],
@@ -378,8 +402,16 @@ class _FileManagerAppState extends State<FileManagerApp> {
       padding: EdgeInsets.zero,
       child: Column(
         children: files.map((file) {
+          final color = file['color'] as Color;
           return SofListTile(
-            leading: Text(file['icon'] as String, style: const TextStyle(fontSize: 22)),
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: SofIcon(file['svg'] as String, size: 18, color: color),
+            ),
             title: Text(file['name'] as String),
             subtitle: Text('Modified ${file['updated']}'),
             trailing: Row(

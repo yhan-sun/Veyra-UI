@@ -92,7 +92,7 @@ class _DashboardAppState extends State<DashboardApp> {
               const SizedBox(width: 12),
               SofButton(
                 variant: SofButtonVariant.subtle,
-                leading: const Text('⬇'),
+                leading: const SofIcon(SofIcons.download, size: 16),
                 onPressed: () {
                   showSofToast(
                     context: context,
@@ -109,7 +109,7 @@ class _DashboardAppState extends State<DashboardApp> {
           // System Status Alert
           const SofAlert(
             variant: SofBadgeVariant.success,
-            icon: Text('✓'),
+            icon: SofIcon(SofIcons.checkCircle, size: 18, color: Color(0xFF12B76A)),
             title: Text('All Systems Operational'),
             message: Text('Global Edge Nodes operating at 99.98% uptime with 14ms latency.'),
           ),
@@ -129,7 +129,7 @@ class _DashboardAppState extends State<DashboardApp> {
                     width: tileWidth,
                     child: const SofAdaptiveTile(
                       variant: SofSurfaceVariant.ambient,
-                      icon: Text('💰', style: TextStyle(fontSize: 18)),
+                      icon: SofIcon(SofIcons.trendingUp, size: 18),
                       value: Text(r'$128.4K'),
                       title: Text('Total Revenue'),
                       subtitle: Text('+18.4% vs last mo.'),
@@ -140,7 +140,7 @@ class _DashboardAppState extends State<DashboardApp> {
                     width: tileWidth,
                     child: const SofAdaptiveTile(
                       variant: SofSurfaceVariant.solid,
-                      icon: Text('👥', style: TextStyle(fontSize: 18)),
+                      icon: SofIcon(SofIcons.users, size: 18),
                       value: Text('48,290'),
                       title: Text('Active Users'),
                       subtitle: Text('+12.1% new signups'),
@@ -151,7 +151,7 @@ class _DashboardAppState extends State<DashboardApp> {
                     width: tileWidth,
                     child: const SofAdaptiveTile(
                       variant: SofSurfaceVariant.solid,
-                      icon: Text('⚡', style: TextStyle(fontSize: 18)),
+                      icon: SofIcon(SofIcons.zap, size: 18),
                       value: Text('99.98%'),
                       title: Text('System Uptime'),
                       subtitle: Text('Zero incident reports'),
@@ -162,7 +162,7 @@ class _DashboardAppState extends State<DashboardApp> {
                     width: tileWidth,
                     child: const SofAdaptiveTile(
                       variant: SofSurfaceVariant.solid,
-                      icon: Text('🎯', style: TextStyle(fontSize: 18)),
+                      icon: SofIcon(SofIcons.target, size: 18),
                       value: Text('4.62%'),
                       title: Text('Conversion Rate'),
                       subtitle: Text('+0.8% checkout flow'),

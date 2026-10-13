@@ -160,7 +160,7 @@ class _SettingsAppState extends State<SettingsApp> {
             child: Column(
               children: [
                 SofListTile(
-                  leading: _buildIconCircle(const Text('✈', style: TextStyle(fontSize: 14)), const Color(0xFFFF9500)),
+                  leading: _buildIconCircle(const SofIcon(SofIcons.airplane, size: 16, color: Color(0xFFFFFFFF)), const Color(0xFFFF9500)),
                   title: const Text('Airplane Mode'),
                   trailing: SofToggle(
                     value: _airplaneMode,
@@ -169,7 +169,7 @@ class _SettingsAppState extends State<SettingsApp> {
                 ),
                 _buildDivider(),
                 SofListTile(
-                  leading: _buildIconCircle(const Text('📶', style: TextStyle(fontSize: 14)), const Color(0xFF34C759)),
+                  leading: _buildIconCircle(const SofIcon(SofIcons.wifi, size: 16, color: Color(0xFFFFFFFF)), const Color(0xFF34C759)),
                   title: const Text('Wi-Fi'),
                   subtitle: Text(_wifiEnabled ? 'Soflume-5G-Pro' : '关闭'),
                   trailing: SofToggle(
@@ -180,7 +180,7 @@ class _SettingsAppState extends State<SettingsApp> {
                 ),
                 _buildDivider(),
                 SofListTile(
-                  leading: _buildIconCircle(const Text('ᛒ', style: TextStyle(fontSize: 14, color: Color(0xFFFFFFFF))), const Color(0xFF007AFF)),
+                  leading: _buildIconCircle(const SofIcon(SofIcons.bluetooth, size: 16, color: Color(0xFFFFFFFF)), const Color(0xFF007AFF)),
                   title: const Text('Bluetooth'),
                   trailing: SofToggle(
                     value: _bluetoothEnabled,

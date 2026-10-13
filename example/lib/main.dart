@@ -175,9 +175,9 @@ class _SoflumeShowcaseAppState extends State<SoflumeShowcaseApp> {
                           // Light / Dark Switcher
                           SofIconButton(
                             variant: SofButtonVariant.subtle,
-                            icon: Text(
-                              _themeData.isDark ? '☀️' : '🌙',
-                              style: const TextStyle(fontSize: 16),
+                            icon: SofIcon(
+                              _themeData.isDark ? SofIcons.sun : SofIcons.moon,
+                              size: 18,
                             ),
                             onPressed: () => _toggleTheme(!_themeData.isDark),
                           ),
@@ -194,12 +194,12 @@ class _SoflumeShowcaseAppState extends State<SoflumeShowcaseApp> {
                         selectedIndex: _activeNavIndex,
                         onChanged: (idx) => setState(() => _activeNavIndex = idx),
                         items: const [
-                          SofNavItem(icon: Text('❖'), label: '展馆'),
-                          SofNavItem(icon: Text('🎨'), label: '主题'),
-                          SofNavItem(icon: Text('⚙'), label: '设置'),
-                          SofNavItem(icon: Text('♪'), label: '音乐'),
-                          SofNavItem(icon: Text('📁'), label: '文件'),
-                          SofNavItem(icon: Text('📊'), label: '看板'),
+                          SofNavItem(icon: SofIcon(SofIcons.grid, size: 18), label: '展馆'),
+                          SofNavItem(icon: SofIcon(SofIcons.palette, size: 18), label: '主题'),
+                          SofNavItem(icon: SofIcon(SofIcons.settings, size: 18), label: '设置'),
+                          SofNavItem(icon: SofIcon(SofIcons.music, size: 18), label: '音乐'),
+                          SofNavItem(icon: SofIcon(SofIcons.folder, size: 18), label: '文件'),
+                          SofNavItem(icon: SofIcon(SofIcons.barChart, size: 18), label: '看板'),
                         ],
                       ),
                   ],
