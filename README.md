@@ -6,6 +6,24 @@
 [![Flutter Version](https://img.shields.io/badge/Flutter-%3E%3D3.10-blue.svg)](https://flutter.dev)
 [![Dart Version](https://img.shields.io/badge/Dart-%3E%3D3.0-blue.svg)](https://dart.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub Pages](https://img.shields.io/badge/Demo-GitHub%20Pages-success.svg)](https://yhan-sun.github.io/Veyra-UI/)
+
+---
+
+## 🌐 在线体验 (Live Web Demo)
+
+Soflume UI 现已通过 GitHub Actions 自动化部署至 GitHub Pages：
+
+🔗 **[https://yhan-sun.github.io/Veyra-UI/](https://yhan-sun.github.io/Veyra-UI/)**
+
+包含：
+- **全组件交互画廊 (Component Gallery)**：微交互、弹簧动效、代码示例（一键查看复制）。
+- **实时设计系统与主题编辑器 (Design System & Theme Editor)**：实时调色盘、G2 连续超椭圆圆角阶梯、间距网格诊断。
+- **4 大旗舰级原生实装 App**：
+  1. ⚙️ **设置中心 (Settings App)**
+  2. 🎵 **柔光音乐播放器 (Music App)**
+  3. 📁 **自适应文件管理器 (File Manager)**
+  4. 📊 **数据与监控看板 (Analytics Dashboard)**
 
 ---
 

@@ -42,10 +42,10 @@ class _SettingsAppState extends State<SettingsApp> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SofListTile(
-                title: const Text('Soflume-5G-Pro'),
-                subtitle: const Text('Connected • Signal Strong'),
-                trailing: const SofBadge(label: Text('Connected'), variant: SofBadgeVariant.success),
+              const SofListTile(
+                title: Text('Soflume-5G-Pro'),
+                subtitle: Text('Connected • Signal Strong'),
+                trailing: SofBadge(label: Text('Connected'), variant: SofBadgeVariant.success),
               ),
               const SizedBox(height: 8),
               SofListTile(
@@ -96,8 +96,8 @@ class _SettingsAppState extends State<SettingsApp> {
                   color: colors.contentPrimary,
                 ),
               ),
-              SofBadge(
-                label: const Text('v1.0'),
+              const SofBadge(
+                label: Text('v1.0'),
                 variant: SofBadgeVariant.accent,
               ),
             ],
@@ -171,8 +171,11 @@ class _SettingsAppState extends State<SettingsApp> {
                 SofListTile(
                   leading: _buildIconCircle(const Text('📶', style: TextStyle(fontSize: 14)), const Color(0xFF34C759)),
                   title: const Text('Wi-Fi'),
-                  subtitle: Text(_wifiEnabled ? 'Soflume-5G-Pro' : 'Off'),
-                  showChevron: true,
+                  subtitle: Text(_wifiEnabled ? 'Soflume-5G-Pro' : '关闭'),
+                  trailing: SofToggle(
+                    value: _wifiEnabled,
+                    onChanged: (val) => setState(() => _wifiEnabled = val),
+                  ),
                   onPressed: _showNetworkSheet,
                 ),
                 _buildDivider(),

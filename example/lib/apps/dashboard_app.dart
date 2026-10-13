@@ -107,11 +107,11 @@ class _DashboardAppState extends State<DashboardApp> {
           const SizedBox(height: 20),
 
           // System Status Alert
-          SofAlert(
+          const SofAlert(
             variant: SofBadgeVariant.success,
-            icon: const Text('✓'),
-            title: const Text('All Systems Operational'),
-            message: const Text('Global Edge Nodes operating at 99.98% uptime with 14ms latency.'),
+            icon: Text('✓'),
+            title: Text('All Systems Operational'),
+            message: Text('Global Edge Nodes operating at 99.98% uptime with 14ms latency.'),
           ),
           const SizedBox(height: 24),
 
@@ -127,46 +127,46 @@ class _DashboardAppState extends State<DashboardApp> {
                 children: [
                   SizedBox(
                     width: tileWidth,
-                    child: SofAdaptiveTile(
+                    child: const SofAdaptiveTile(
                       variant: SofSurfaceVariant.ambient,
-                      icon: const Text('💰', style: TextStyle(fontSize: 18)),
-                      value: const Text('\$128.4K'),
-                      title: const Text('Total Revenue'),
-                      subtitle: const Text('+18.4% vs last mo.'),
-                      statusBadge: const SofBadge(label: Text('+18.4%'), variant: SofBadgeVariant.success),
+                      icon: Text('💰', style: TextStyle(fontSize: 18)),
+                      value: Text(r'$128.4K'),
+                      title: Text('Total Revenue'),
+                      subtitle: Text('+18.4% vs last mo.'),
+                      statusBadge: SofBadge(label: Text('+18.4%'), variant: SofBadgeVariant.success),
                     ),
                   ),
                   SizedBox(
                     width: tileWidth,
-                    child: SofAdaptiveTile(
+                    child: const SofAdaptiveTile(
                       variant: SofSurfaceVariant.solid,
-                      icon: const Text('👥', style: TextStyle(fontSize: 18)),
-                      value: const Text('48,290'),
-                      title: const Text('Active Users'),
-                      subtitle: const Text('+12.1% new signups'),
-                      statusBadge: const SofBadge(label: Text('+12.1%'), variant: SofBadgeVariant.accent),
+                      icon: Text('👥', style: TextStyle(fontSize: 18)),
+                      value: Text('48,290'),
+                      title: Text('Active Users'),
+                      subtitle: Text('+12.1% new signups'),
+                      statusBadge: SofBadge(label: Text('+12.1%'), variant: SofBadgeVariant.accent),
                     ),
                   ),
                   SizedBox(
                     width: tileWidth,
-                    child: SofAdaptiveTile(
+                    child: const SofAdaptiveTile(
                       variant: SofSurfaceVariant.solid,
-                      icon: const Text('⚡', style: TextStyle(fontSize: 18)),
-                      value: const Text('99.98%'),
-                      title: const Text('System Uptime'),
-                      subtitle: const Text('Zero incident reports'),
-                      statusBadge: const SofBadge(label: Text('Optimal'), variant: SofBadgeVariant.success),
+                      icon: Text('⚡', style: TextStyle(fontSize: 18)),
+                      value: Text('99.98%'),
+                      title: Text('System Uptime'),
+                      subtitle: Text('Zero incident reports'),
+                      statusBadge: SofBadge(label: Text('Optimal'), variant: SofBadgeVariant.success),
                     ),
                   ),
                   SizedBox(
                     width: tileWidth,
-                    child: SofAdaptiveTile(
+                    child: const SofAdaptiveTile(
                       variant: SofSurfaceVariant.solid,
-                      icon: const Text('🎯', style: TextStyle(fontSize: 18)),
-                      value: const Text('4.62%'),
-                      title: const Text('Conversion Rate'),
-                      subtitle: const Text('+0.8% checkout flow'),
-                      statusBadge: const SofBadge(label: Text('+0.8%'), variant: SofBadgeVariant.warning),
+                      icon: Text('🎯', style: TextStyle(fontSize: 18)),
+                      value: Text('4.62%'),
+                      title: Text('Conversion Rate'),
+                      subtitle: Text('+0.8% checkout flow'),
+                      statusBadge: SofBadge(label: Text('+0.8%'), variant: SofBadgeVariant.warning),
                     ),
                   ),
                 ],
