@@ -1,0 +1,131 @@
+{
+  "name": "Soflume UI",
+  "version": "1.0.0-proposal",
+  "description": "Draft design tokens for the Soflume UI Soft Lumen visual system. Not a published library.",
+  "color": {
+    "light": {
+      "canvas": "#F6F7FB",
+      "surface": "#FFFFFF",
+      "surfaceRaised": "#FFFFFF",
+      "surfaceMuted": "#EDF0F7",
+      "contentPrimary": "#1B2030",
+      "contentSecondary": "#697184",
+      "outlineSubtle": "#E3E7F0",
+      "accent": "#5362E8",
+      "onAccent": "#FFFFFF",
+      "success": "#258867",
+      "warning": "#9F6A1C",
+      "danger": "#C94459"
+    },
+    "dark": {
+      "canvas": "#101218",
+      "surface": "#1A1D25",
+      "surfaceRaised": "#232735",
+      "surfaceMuted": "#282C39",
+      "contentPrimary": "#F1F3FA",
+      "contentSecondary": "#ADB4C4",
+      "outlineSubtle": "#353A48",
+      "accent": "#9EA8FF",
+      "onAccent": "#11162C",
+      "success": "#75D6AD",
+      "warning": "#F4C47B",
+      "danger": "#FF8B9A"
+    }
+  },
+  "spacing": [
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    32,
+    40,
+    48,
+    64
+  ],
+  "radius": {
+    "xs": 8,
+    "sm": 12,
+    "md": 16,
+    "lg": 22,
+    "xl": 28,
+    "xxl": 36,
+    "pill": 999
+  },
+  "typography": {
+    "display": {
+      "fontSize": 32,
+      "lineHeight": 40,
+      "fontWeight": 650
+    },
+    "headline": {
+      "fontSize": 26,
+      "lineHeight": 34,
+      "fontWeight": 650
+    },
+    "title": {
+      "fontSize": 20,
+      "lineHeight": 28,
+      "fontWeight": 620
+    },
+    "body": {
+      "fontSize": 15,
+      "lineHeight": 23,
+      "fontWeight": 400
+    },
+    "label": {
+      "fontSize": 13,
+      "lineHeight": 20,
+      "fontWeight": 550
+    },
+    "caption": {
+      "fontSize": 12,
+      "lineHeight": 18,
+      "fontWeight": 400
+    }
+  },
+  "motion": {
+    "durationMs": {
+      "instant": 100,
+      "quick": 180,
+      "regular": 260,
+      "expressive": 360
+    },
+    "spring": {
+      "gentle": {
+        "mass": 1,
+        "stiffness": 240,
+        "damping": 28
+      },
+      "snappy": {
+        "mass": 1,
+        "stiffness": 420,
+        "damping": 32
+      },
+      "settle": {
+        "mass": 1,
+        "stiffness": 300,
+        "damping": 36
+      }
+    }
+  },
+  "layout": {
+    "breakpoint": {
+      "compactMax": 599,
+      "mediumMax": 1023,
+      "expandedMin": 1024
+    },
+    "minTouchTarget": 48,
+    "density": [
+      "compact",
+      "comfortable",
+      "spacious"
+    ]
+  },
+  "material": [
+    "solid",
+    "frost",
+    "ambient"
+  ]
+}
