@@ -65,6 +65,17 @@ class _SofCheckboxState extends State<SofCheckbox> with SingleTickerProviderStat
         _controller.reverse();
       }
     }
+    if (widget.focusNode != oldWidget.focusNode) {
+      if (oldWidget.focusNode == null) {
+        _focusNode.removeListener(_handleFocusChange);
+        _focusNode.dispose();
+      } else {
+        oldWidget.focusNode!.removeListener(_handleFocusChange);
+      }
+      _focusNode = widget.focusNode ?? FocusNode();
+      _focusNode.addListener(_handleFocusChange);
+      _isFocused = _focusNode.hasFocus;
+    }
   }
 
   void _handleFocusChange() {

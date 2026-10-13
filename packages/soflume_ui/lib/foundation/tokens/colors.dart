@@ -25,9 +25,17 @@ class SoflumeColors {
     required this.isDark,
   });
 
+  /// Computes a high-contrast foreground color (WCAG AA compliant)
+  /// based on relative luminance of the given background color.
+  static Color computeContrastColor(Color background) {
+    final luminance = background.computeLuminance();
+    return luminance > 0.45 ? const Color(0xFF11162C) : const Color(0xFFFFFFFF);
+  }
+
   /// Factory for Soflume Light theme colors.
-  factory SoflumeColors.light({Color? customAccent}) {
+  factory SoflumeColors.light({Color? customAccent, Color? customOnAccent}) {
     final accent = customAccent ?? const Color(0xFF5362E8);
+    final onAccent = customOnAccent ?? computeContrastColor(accent);
     return SoflumeColors(
       canvas: const Color(0xFFF6F7FB),
       surface: const Color(0xFFFFFFFF),
@@ -39,7 +47,7 @@ class SoflumeColors {
       outlineSubtle: const Color(0xFFE3E7F0),
       outlineFocus: accent.withValues(alpha: 0.45),
       accent: accent,
-      onAccent: const Color(0xFFFFFFFF),
+      onAccent: onAccent,
       accentSubtle: accent.withValues(alpha: 0.12),
       success: const Color(0xFF258867),
       warning: const Color(0xFF9F6A1C),
@@ -50,8 +58,9 @@ class SoflumeColors {
   }
 
   /// Factory for Soflume Dark theme colors.
-  factory SoflumeColors.dark({Color? customAccent}) {
+  factory SoflumeColors.dark({Color? customAccent, Color? customOnAccent}) {
     final accent = customAccent ?? const Color(0xFF9EA8FF);
+    final onAccent = customOnAccent ?? computeContrastColor(accent);
     return SoflumeColors(
       canvas: const Color(0xFF101218),
       surface: const Color(0xFF1A1D25),
@@ -63,7 +72,7 @@ class SoflumeColors {
       outlineSubtle: const Color(0xFF353A48),
       outlineFocus: accent.withValues(alpha: 0.55),
       accent: accent,
-      onAccent: const Color(0xFF11162C),
+      onAccent: onAccent,
       accentSubtle: accent.withValues(alpha: 0.16),
       success: const Color(0xFF75D6AD),
       warning: const Color(0xFFF4C47B),

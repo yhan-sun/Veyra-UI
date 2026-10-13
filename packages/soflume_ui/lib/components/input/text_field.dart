@@ -61,15 +61,40 @@ class _SofTextFieldState extends State<SofTextField> {
   void initState() {
     super.initState();
     _controller = widget.controller ?? TextEditingController();
+    _controller.addListener(_handleTextChange);
     _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.addListener(_handleFocusChange);
+  }
+
+  void _handleTextChange() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   void didUpdateWidget(SofTextField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.controller != oldWidget.controller && widget.controller != null) {
-      _controller = widget.controller!;
+    if (widget.controller != oldWidget.controller) {
+      if (oldWidget.controller == null) {
+        _controller.removeListener(_handleTextChange);
+        _controller.dispose();
+      } else {
+        oldWidget.controller!.removeListener(_handleTextChange);
+      }
+      _controller = widget.controller ?? TextEditingController();
+      _controller.addListener(_handleTextChange);
+    }
+    if (widget.focusNode != oldWidget.focusNode) {
+      if (oldWidget.focusNode == null) {
+        _focusNode.removeListener(_handleFocusChange);
+        _focusNode.dispose();
+      } else {
+        oldWidget.focusNode!.removeListener(_handleFocusChange);
+      }
+      _focusNode = widget.focusNode ?? FocusNode();
+      _focusNode.addListener(_handleFocusChange);
+      _isFocused = _focusNode.hasFocus;
     }
   }
 
@@ -85,6 +110,7 @@ class _SofTextFieldState extends State<SofTextField> {
     if (widget.focusNode == null) {
       _focusNode.dispose();
     }
+    _controller.removeListener(_handleTextChange);
     if (widget.controller == null) {
       _controller.dispose();
     }
@@ -155,23 +181,39 @@ class _SofTextFieldState extends State<SofTextField> {
                     const SizedBox(width: 8),
                   ],
                   Expanded(
-                    child: EditableText(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      style: typography.body.copyWith(
-                        color: widget.enabled ? colors.contentPrimary : colors.contentSecondary,
-                      ),
-                      cursorColor: colors.accent,
-                      backgroundCursorColor: colors.outlineSubtle,
-                      obscureText: widget.obscureText,
-                      autofocus: widget.autofocus,
-                      readOnly: widget.readOnly || !widget.enabled,
-                      maxLines: widget.maxLines,
-                      minLines: widget.minLines,
-                      keyboardType: widget.keyboardType,
-                      textInputAction: widget.textInputAction,
-                      onChanged: widget.onChanged,
-                      onSubmitted: widget.onSubmitted,
+                    child: Stack(
+                      alignment: Alignment.centerLeft,
+                      children: [
+                        if (_controller.text.isEmpty && widget.placeholder != null)
+                          IgnorePointer(
+                            child: Text(
+                              widget.placeholder!,
+                              style: typography.body.copyWith(
+                                color: colors.contentTertiary,
+                              ),
+                              maxLines: widget.maxLines,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        EditableText(
+                          controller: _controller,
+                          focusNode: _focusNode,
+                          style: typography.body.copyWith(
+                            color: widget.enabled ? colors.contentPrimary : colors.contentSecondary,
+                          ),
+                          cursorColor: colors.accent,
+                          backgroundCursorColor: colors.outlineSubtle,
+                          obscureText: widget.obscureText,
+                          autofocus: widget.autofocus,
+                          readOnly: widget.readOnly || !widget.enabled,
+                          maxLines: widget.maxLines,
+                          minLines: widget.minLines,
+                          keyboardType: widget.keyboardType,
+                          textInputAction: widget.textInputAction,
+                          onChanged: widget.onChanged,
+                          onSubmitted: widget.onSubmitted,
+                        ),
+                      ],
                     ),
                   ),
                   if (widget.suffix != null) ...[

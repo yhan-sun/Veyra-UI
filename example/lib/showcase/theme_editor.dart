@@ -107,9 +107,9 @@ class ThemeEditor extends StatelessWidget {
             value: currentTheme.density,
             onChanged: (d) => onThemeChanged(currentTheme.copyWith(density: d)),
             segments: const [
-              SofSegment(value: SoflumeDensity.compact, label: Text('紧凑 Compact (40dp 桌面)')),
-              SofSegment(value: SoflumeDensity.comfortable, label: Text('舒适 Comfortable (48dp 移动)')),
-              SofSegment(value: SoflumeDensity.spacious, label: Text('宽松 Spacious (56dp 触控)')),
+              SofSegment(value: SoflumeDensity.compact, label: Text('紧凑 (Compact)')),
+              SofSegment(value: SoflumeDensity.comfortable, label: Text('舒适 (Comfortable)')),
+              SofSegment(value: SoflumeDensity.spacious, label: Text('宽松 (Spacious)')),
             ],
           ),
           const SizedBox(height: 28),

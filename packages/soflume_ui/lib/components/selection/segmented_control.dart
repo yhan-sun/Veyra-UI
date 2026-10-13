@@ -53,10 +53,12 @@ class SofSegmentedControl<T> extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final totalWidth = constraints.maxWidth;
+        final hasFiniteWidth = constraints.maxWidth.isFinite;
+        final totalWidth = hasFiniteWidth ? constraints.maxWidth : (segments.length * 88.0);
         final segmentWidth = (totalWidth - 6.0) / segments.length;
 
         return Container(
+          width: hasFiniteWidth ? null : totalWidth,
           height: height,
           padding: const EdgeInsets.all(3.0),
           decoration: ShapeDecoration(
@@ -129,22 +131,25 @@ class SofSegmentedControl<T> extends StatelessWidget {
                             color: textColor,
                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (segment.icon != null) ...[
-                                IconTheme(
-                                  data: IconThemeData(
-                                    size: 16,
-                                    color: textColor,
-                                  ),
-                                  child: segment.icon!,
-                                ),
-                                const SizedBox(width: 6),
-                              ],
-                              segment.label,
-                            ],
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: segment.icon != null
+                                ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      IconTheme(
+                                        data: IconThemeData(
+                                          size: 16,
+                                          color: textColor,
+                                        ),
+                                        child: segment.icon!,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      segment.label,
+                                    ],
+                                  )
+                                : segment.label,
                           ),
                         ),
                       ),

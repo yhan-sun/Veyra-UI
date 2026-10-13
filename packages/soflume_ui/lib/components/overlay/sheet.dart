@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import '../../foundation/theme/theme.dart';
 import '../../primitives/surface.dart';
@@ -44,24 +45,34 @@ class SofSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (showDragHandle) ...[
-                const SizedBox(height: 10),
-                Center(
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onVerticalDragEnd: (details) {
+                    if (details.primaryVelocity != null && details.primaryVelocity! > 250) {
+                      Navigator.maybeOf(context)?.pop();
+                    }
+                  },
                   child: Container(
-                    width: 38,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: colors.outlineSubtle,
-                      borderRadius: BorderRadius.circular(2.5),
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Center(
+                      child: Container(
+                        width: 38,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: colors.outlineSubtle,
+                          borderRadius: BorderRadius.circular(2.5),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
               ],
               if (title != null) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                   child: DefaultTextStyle.merge(
-                    style: typography.headline.copyWith(
+                    style: typography.title.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colors.contentPrimary,
                     ),
@@ -70,7 +81,7 @@ class SofSheet extends StatelessWidget {
                 ),
               ],
               Padding(
-                padding: padding ?? const EdgeInsets.all(24.0),
+                padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 child: child,
               ),
             ],
@@ -82,6 +93,8 @@ class SofSheet extends StatelessWidget {
 }
 
 /// Displays a modal [SofSheet] sliding up from the bottom.
+///
+/// Supports ESC key dismiss, barrier dismiss, downward swipe on handle, and PopScope.
 Future<T?> showSofSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
@@ -97,9 +110,32 @@ Future<T?> showSofSheet<T>({
       transitionDuration: theme.motion.getEffectiveDuration(theme.motion.durationExpressive),
       reverseTransitionDuration: theme.motion.getEffectiveDuration(theme.motion.durationRegular),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return SoflumeTheme(
-          data: theme,
-          child: builder(context),
+        return FocusScope(
+          autofocus: true,
+          child: Shortcuts(
+            shortcuts: const <ShortcutActivator, Intent>{
+              SingleActivator(LogicalKeyboardKey.escape): DismissIntent(),
+            },
+            child: Actions(
+              actions: <Type, Action<Intent>>{
+                DismissIntent: CallbackAction<DismissIntent>(
+                  onInvoke: (intent) {
+                    if (isDismissible) {
+                      Navigator.of(context).pop();
+                    }
+                    return null;
+                  },
+                ),
+              },
+              child: PopScope(
+                canPop: isDismissible,
+                child: SoflumeTheme(
+                  data: theme,
+                  child: builder(context),
+                ),
+              ),
+            ),
+          ),
         );
       },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {

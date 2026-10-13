@@ -1,9 +1,11 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import '../foundation/theme/theme.dart';
+import '../foundation/motion/spring_curve.dart';
 import '../primitives/surface.dart';
 
-/// Brand Signature: Gesture-driven, interruptible draggable sheet with continuous spring physics and multi-stage snapping.
+/// Brand Signature: Gesture-driven, interruptible draggable sheet with continuous spring physics,
+/// multi-stage snapping, and coordinated scroll physics.
 class SofFluidSheet extends StatefulWidget {
   const SofFluidSheet({
     super.key,
@@ -16,7 +18,7 @@ class SofFluidSheet extends StatefulWidget {
   final List<double> snapPoints;
   final int initialSnapIndex;
   final ValueChanged<int>? onSnapChanged;
-  final Widget Function(BuildContext context, ScrollController? scrollController) builder;
+  final Widget Function(BuildContext context, ScrollController scrollController) builder;
 
   @override
   State<SofFluidSheet> createState() => _SofFluidSheetState();
@@ -24,6 +26,7 @@ class SofFluidSheet extends StatefulWidget {
 
 class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  late final ScrollController _scrollController;
   late int _currentSnapIndex;
 
   @override
@@ -32,6 +35,7 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
     _currentSnapIndex = widget.initialSnapIndex.clamp(0, widget.snapPoints.length - 1);
     final initialExtent = widget.snapPoints[_currentSnapIndex];
 
+    _scrollController = ScrollController();
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 320),
@@ -42,10 +46,12 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   void _snapToNearest(double currentExtent, double velocity) {
+    if (!mounted) return;
     int targetIndex = 0;
     double minDistance = double.infinity;
 
@@ -69,8 +75,8 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
 
     _controller.animateTo(
       targetExtent,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOutCubic,
+      duration: const Duration(milliseconds: 320),
+      curve: const SofSpringCurve.settle(),
     );
   }
 
@@ -134,9 +140,26 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
                         ),
                       ),
 
-                      // Content
+                      // Content with coordinated scroll notifications
                       Expanded(
-                        child: widget.builder(context, null),
+                        child: NotificationListener<ScrollNotification>(
+                          onNotification: (notification) {
+                            if (notification is OverscrollNotification && notification.overscroll < 0) {
+                              final delta = -notification.overscroll / totalHeight;
+                              _controller.value = (_controller.value + delta).clamp(
+                                widget.snapPoints.first * 0.8,
+                                widget.snapPoints.last * 1.05,
+                              );
+                              return true;
+                            } else if (notification is ScrollEndNotification) {
+                              if (_controller.value != widget.snapPoints[_currentSnapIndex]) {
+                                _snapToNearest(_controller.value, 0);
+                              }
+                            }
+                            return false;
+                          },
+                          child: widget.builder(context, _scrollController),
+                        ),
                       ),
                     ],
                   ),

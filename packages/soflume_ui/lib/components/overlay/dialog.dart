@@ -1,8 +1,9 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import '../../foundation/theme/theme.dart';
 import '../../primitives/surface.dart';
 
-/// Soft Lumen modal dialog with frosted backdrop and spring entrance.
+/// Soft Lumen modal dialog with frosted backdrop, spring entrance, and accessible keyboard dismissal.
 class SofDialog extends StatelessWidget {
   const SofDialog({
     super.key,
@@ -82,6 +83,8 @@ class SofDialog extends StatelessWidget {
 }
 
 /// Displays a modal [SofDialog] with spring animation and blurred backdrop.
+///
+/// Supports ESC key dismissal, Android Back / system pop handling, and returns typed result [T].
 Future<T?> showSofDialog<T>({
   required BuildContext context,
   required WidgetBuilder builder,
@@ -97,9 +100,32 @@ Future<T?> showSofDialog<T>({
       transitionDuration: theme.motion.getEffectiveDuration(theme.motion.durationRegular),
       reverseTransitionDuration: theme.motion.getEffectiveDuration(theme.motion.durationQuick),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return SoflumeTheme(
-          data: theme,
-          child: builder(context),
+        return FocusScope(
+          autofocus: true,
+          child: Shortcuts(
+            shortcuts: const <ShortcutActivator, Intent>{
+              SingleActivator(LogicalKeyboardKey.escape): DismissIntent(),
+            },
+            child: Actions(
+              actions: <Type, Action<Intent>>{
+                DismissIntent: CallbackAction<DismissIntent>(
+                  onInvoke: (intent) {
+                    if (barrierDismissible) {
+                      Navigator.of(context).pop();
+                    }
+                    return null;
+                  },
+                ),
+              },
+              child: PopScope(
+                canPop: barrierDismissible,
+                child: SoflumeTheme(
+                  data: theme,
+                  child: builder(context),
+                ),
+              ),
+            ),
+          ),
         );
       },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {

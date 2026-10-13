@@ -27,6 +27,7 @@ export 'foundation/layout/adaptive.dart';
 // Foundation - Theme
 export 'foundation/theme/theme_data.dart';
 export 'foundation/theme/theme.dart';
+export 'foundation/theme/app.dart';
 export 'foundation/theme/material_adapter.dart';
 
 // Primitives

@@ -5,11 +5,12 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="description" content="Soflume UI — 面向未来的 Flutter 高端跨平台设计系统与组件库（Soft Lumen 柔光美学）。">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Soflume UI">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
@@ -33,6 +34,12 @@
       justify-content: center;
       height: 100vh;
       color: #9EA8FF;
+      transition: opacity 0.4s ease-out;
+      pointer-events: auto;
+    }
+    #loading-container.fade-out {
+      opacity: 0;
+      pointer-events: none;
     }
     .spinner {
       width: 44px;
@@ -52,6 +59,36 @@
     <div class="spinner"></div>
     <p style="margin-top: 18px; font-size: 14px; letter-spacing: 0.5px; opacity: 0.8;">加载 Soflume UI 柔光设计系统...</p>
   </div>
+  <script>
+    function removeLoading() {
+      const loader = document.getElementById('loading-container');
+      if (loader && !loader.classList.contains('fade-out')) {
+        loader.classList.add('fade-out');
+        setTimeout(() => {
+          if (loader.parentNode) {
+            loader.parentNode.removeChild(loader);
+          }
+        }, 400);
+      }
+    }
+
+    // Observe when Flutter renders its first frame or mounts the view
+    window.addEventListener('flutter-first-frame', removeLoading);
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.tagName === 'FLUTTER-VIEW' || node.tagName === 'FLT-GLASS-PANE') {
+            removeLoading();
+            observer.disconnect();
+            return;
+          }
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    // Safety fallback
+    setTimeout(removeLoading, 5000);
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
