@@ -133,5 +133,87 @@ void main() {
 
       expect(changedSnap, isNotNull);
     });
+
+    testWidgets('SofFluidSheet dragging down at top of list reduces sheet extent', (tester) async {
+      int? changedSnap;
+
+      await tester.pumpWidget(
+        SoflumeTheme(
+          data: SoflumeThemeData.light(),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              height: 600,
+              width: 400,
+              child: SofFluidSheet(
+                snapPoints: const [0.3, 0.6, 0.9],
+                initialSnapIndex: 1, // 0.6
+                onSnapChanged: (index) {
+                  changedSnap = index;
+                },
+                builder: (context, scrollController) {
+                  return ListView(
+                    controller: scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(height: 50, child: Text('List Item 1')),
+                      SizedBox(height: 50, child: Text('List Item 2')),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Drag list down at the top edge (overscroll downwards)
+      await tester.drag(find.text('List Item 1'), const Offset(0, 150));
+      await tester.pumpAndSettle();
+
+      // Should snap to lowest point (index 0 = 0.3)
+      expect(changedSnap, equals(0));
+    });
+
+    testWidgets('SofFluidSheet ignores horizontal scrolling inside content', (tester) async {
+      int? changedSnap;
+
+      await tester.pumpWidget(
+        SoflumeTheme(
+          data: SoflumeThemeData.light(),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              height: 600,
+              width: 400,
+              child: SofFluidSheet(
+                snapPoints: const [0.3, 0.6, 0.9],
+                initialSnapIndex: 1, // 0.6
+                onSnapChanged: (index) {
+                  changedSnap = index;
+                },
+                builder: (context, scrollController) {
+                  return ListView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(width: 300, child: Text('Horizontal 1')),
+                      SizedBox(width: 300, child: Text('Horizontal 2')),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Drag horizontally
+      await tester.drag(find.text('Horizontal 1'), const Offset(-150, 0));
+      await tester.pumpAndSettle();
+
+      // changedSnap must remain null because horizontal gestures do not drive vertical sheet expansion
+      expect(changedSnap, isNull);
+    });
   });
 }

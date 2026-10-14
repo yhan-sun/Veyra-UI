@@ -45,14 +45,20 @@ class SoflumeColors {
   /// [background]. By default, tests against standard dark text ([darkCandidate], default #11162C)
   /// and light text ([lightCandidate], default #FFFFFF).
   ///
-  /// If one candidate meets or exceeds [minContrast] (default 4.5 for WCAG AA normal text),
-  /// and the other does not, the compliant candidate is chosen. Otherwise, the candidate
-  /// with the higher contrast ratio is selected.
+  /// Selection logic:
+  /// 1. If one candidate satisfies [minContrast] (default 4.5 for WCAG AA) while the other
+  ///    does not, the compliant candidate is chosen.
+  /// 2. If both candidates satisfy [minContrast], the candidate providing superior contrast is chosen.
+  /// 3. If neither candidate meets [minContrast] (e.g., boundary mid-grays such as #7B7B7B or restricted custom candidates):
+  ///    - When [enforceMinContrast] is true (default), falls back to absolute high-contrast
+  ///      endpoints (pure black #000000 or pure white #FFFFFF) ensuring WCAG AA compliance.
+  ///    - When [enforceMinContrast] is false, returns whichever candidate provided the highest contrast.
   static Color computeContrastColor(
     Color background, {
     Color darkCandidate = const Color(0xFF11162C),
     Color lightCandidate = const Color(0xFFFFFFFF),
     double minContrast = 4.5,
+    bool enforceMinContrast = true,
   }) {
     final darkRatio = contrastRatio(darkCandidate, background);
     final lightRatio = contrastRatio(lightCandidate, background);
@@ -63,6 +69,25 @@ class SoflumeColors {
     if (darkRatio >= minContrast && lightRatio < minContrast) {
       return darkCandidate;
     }
+    if (darkRatio >= minContrast && lightRatio >= minContrast) {
+      return lightRatio >= darkRatio ? lightCandidate : darkCandidate;
+    }
+
+    if (enforceMinContrast) {
+      const pureBlack = Color(0xFF000000);
+      const pureWhite = Color(0xFFFFFFFF);
+      final blackRatio = contrastRatio(pureBlack, background);
+      final whiteRatio = contrastRatio(pureWhite, background);
+
+      if (blackRatio >= minContrast && whiteRatio < minContrast) {
+        return pureBlack;
+      }
+      if (whiteRatio >= minContrast && blackRatio < minContrast) {
+        return pureWhite;
+      }
+      return whiteRatio >= blackRatio ? pureWhite : pureBlack;
+    }
+
     return lightRatio >= darkRatio ? lightCandidate : darkCandidate;
   }
 

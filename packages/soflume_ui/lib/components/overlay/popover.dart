@@ -12,7 +12,8 @@ enum SofPopoverPlacement {
 }
 
 /// A floating contextual popover component with Soft Lumen frosted glass styling,
-/// viewport edge auto-clamping, and accessible dismissal.
+/// real-time scroll following via [LayerLink], intelligent edge flipping,
+/// and keyboard focus restoration.
 class SofPopover extends StatefulWidget {
   const SofPopover({
     super.key,
@@ -23,6 +24,7 @@ class SofPopover extends StatefulWidget {
     this.barrierDismissible = true,
     this.borderRadius,
     this.onDismiss,
+    this.focusNode,
   });
 
   /// The anchor trigger widget that activates the popover.
@@ -31,7 +33,7 @@ class SofPopover extends StatefulWidget {
   /// The popover content displayed inside the floating surface.
   final Widget content;
 
-  /// Preferred placement relative to the trigger.
+  /// Preferred placement relative to the trigger. Will dynamically flip if space is insufficient.
   final SofPopoverPlacement placement;
 
   /// Distance in logical pixels between trigger and popover surface.
@@ -46,16 +48,38 @@ class SofPopover extends StatefulWidget {
   /// Callback invoked when popover is dismissed.
   final VoidCallback? onDismiss;
 
+  /// Optional focus node for the trigger. If omitted, an internal node is managed.
+  final FocusNode? focusNode;
+
   @override
   State<SofPopover> createState() => SofPopoverState();
 }
 
 class SofPopoverState extends State<SofPopover> {
   final GlobalKey _anchorKey = GlobalKey();
+  final LayerLink _layerLink = LayerLink();
+  late FocusNode _triggerFocusNode;
   OverlayEntry? _overlayEntry;
   bool _isOpen = false;
 
   bool get isOpen => _isOpen;
+
+  @override
+  void initState() {
+    super.initState();
+    _triggerFocusNode = widget.focusNode ?? FocusNode();
+  }
+
+  @override
+  void didUpdateWidget(SofPopover oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.focusNode != oldWidget.focusNode) {
+      if (oldWidget.focusNode == null) {
+        _triggerFocusNode.dispose();
+      }
+      _triggerFocusNode = widget.focusNode ?? FocusNode();
+    }
+  }
 
   void open() {
     if (_isOpen) return;
@@ -65,17 +89,38 @@ class SofPopoverState extends State<SofPopover> {
 
     final anchorRect = renderBox.localToGlobal(Offset.zero) & renderBox.size;
     final theme = SoflumeTheme.of(context);
+    final mediaQuery = MediaQuery.of(context);
+    final screenSize = mediaQuery.size;
+    final padding = mediaQuery.padding;
+
+    // Intelligent edge flipping
+    final spaceBelow = screenSize.height - anchorRect.bottom - padding.bottom;
+    final spaceAbove = anchorRect.top - padding.top;
+    final spaceRight = screenSize.width - anchorRect.right - padding.right;
+    final spaceLeft = anchorRect.left - padding.left;
+
+    SofPopoverPlacement resolvedPlacement = widget.placement;
+    if (widget.placement == SofPopoverPlacement.bottom && spaceBelow < 160 && spaceAbove > spaceBelow) {
+      resolvedPlacement = SofPopoverPlacement.top;
+    } else if (widget.placement == SofPopoverPlacement.top && spaceAbove < 160 && spaceBelow > spaceAbove) {
+      resolvedPlacement = SofPopoverPlacement.bottom;
+    } else if (widget.placement == SofPopoverPlacement.right && spaceRight < 200 && spaceLeft > spaceRight) {
+      resolvedPlacement = SofPopoverPlacement.left;
+    } else if (widget.placement == SofPopoverPlacement.left && spaceLeft < 200 && spaceRight > spaceLeft) {
+      resolvedPlacement = SofPopoverPlacement.right;
+    }
 
     _overlayEntry = OverlayEntry(
       builder: (ctx) {
         return _SofPopoverOverlay(
-          anchorRect: anchorRect,
-          placement: widget.placement,
+          layerLink: _layerLink,
+          placement: resolvedPlacement,
           offset: widget.offset,
           barrierDismissible: widget.barrierDismissible,
           borderRadius: widget.borderRadius,
           theme: theme,
           onClose: close,
+          triggerFocusNode: _triggerFocusNode,
           content: widget.content,
         );
       },
@@ -92,6 +137,8 @@ class SofPopoverState extends State<SofPopover> {
     _isOpen = false;
     if (mounted) {
       setState(() {});
+      // Restore focus to trigger element for seamless keyboard navigation
+      _triggerFocusNode.requestFocus();
     }
     widget.onDismiss?.call();
   }
@@ -111,39 +158,50 @@ class SofPopoverState extends State<SofPopover> {
       _overlayEntry = null;
       _isOpen = false;
     }
+    if (widget.focusNode == null) {
+      _triggerFocusNode.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      key: _anchorKey,
-      behavior: HitTestBehavior.opaque,
-      onTap: toggle,
-      child: widget.child,
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: Focus(
+        focusNode: _triggerFocusNode,
+        child: GestureDetector(
+          key: _anchorKey,
+          behavior: HitTestBehavior.opaque,
+          onTap: toggle,
+          child: widget.child,
+        ),
+      ),
     );
   }
 }
 
 class _SofPopoverOverlay extends StatefulWidget {
   const _SofPopoverOverlay({
-    required this.anchorRect,
+    required this.layerLink,
     required this.placement,
     required this.offset,
     required this.barrierDismissible,
     required this.borderRadius,
     required this.theme,
     required this.onClose,
+    required this.triggerFocusNode,
     required this.content,
   });
 
-  final Rect anchorRect;
+  final LayerLink layerLink;
   final SofPopoverPlacement placement;
   final double offset;
   final bool barrierDismissible;
   final BorderRadius? borderRadius;
   final SoflumeThemeData theme;
   final VoidCallback onClose;
+  final FocusNode triggerFocusNode;
   final Widget content;
 
   @override
@@ -152,7 +210,7 @@ class _SofPopoverOverlay extends StatefulWidget {
 
 class _SofPopoverOverlayState extends State<_SofPopoverOverlay>
     with SingleTickerProviderStateMixin {
-  late final FocusNode _focusNode;
+  late final FocusNode _overlayFocusNode;
   late final AnimationController _animController;
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _fadeAnimation;
@@ -160,10 +218,10 @@ class _SofPopoverOverlayState extends State<_SofPopoverOverlay>
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
+    _overlayFocusNode = FocusNode();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        _focusNode.requestFocus();
+        _overlayFocusNode.requestFocus();
       }
     });
 
@@ -182,7 +240,7 @@ class _SofPopoverOverlayState extends State<_SofPopoverOverlay>
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    _overlayFocusNode.dispose();
     _animController.dispose();
     super.dispose();
   }
@@ -191,15 +249,52 @@ class _SofPopoverOverlayState extends State<_SofPopoverOverlay>
     widget.onClose();
   }
 
+  Alignment _getTargetAnchor() {
+    switch (widget.placement) {
+      case SofPopoverPlacement.bottom:
+        return Alignment.bottomLeft;
+      case SofPopoverPlacement.top:
+        return Alignment.topLeft;
+      case SofPopoverPlacement.right:
+        return Alignment.topRight;
+      case SofPopoverPlacement.left:
+        return Alignment.topLeft;
+    }
+  }
+
+  Alignment _getFollowerAnchor() {
+    switch (widget.placement) {
+      case SofPopoverPlacement.bottom:
+        return Alignment.topLeft;
+      case SofPopoverPlacement.top:
+        return Alignment.bottomLeft;
+      case SofPopoverPlacement.right:
+        return Alignment.topLeft;
+      case SofPopoverPlacement.left:
+        return Alignment.topRight;
+    }
+  }
+
+  Offset _getFollowerOffset() {
+    switch (widget.placement) {
+      case SofPopoverPlacement.bottom:
+        return Offset(0, widget.offset);
+      case SofPopoverPlacement.top:
+        return Offset(0, -widget.offset);
+      case SofPopoverPlacement.right:
+        return Offset(widget.offset, 0);
+      case SofPopoverPlacement.left:
+        return Offset(-widget.offset, 0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final padding = MediaQuery.of(context).padding;
     final radii = widget.theme.radii;
     final effectiveRadius = widget.borderRadius ?? radii.brLg;
 
     return Focus(
-      focusNode: _focusNode,
+      focusNode: _overlayFocusNode,
       autofocus: true,
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
@@ -212,7 +307,7 @@ class _SofPopoverOverlayState extends State<_SofPopoverOverlay>
       },
       child: Stack(
         children: [
-          // Dismissible backdrop
+          // Dismissible full-screen backdrop
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -221,73 +316,31 @@ class _SofPopoverOverlayState extends State<_SofPopoverOverlay>
             ),
           ),
 
-              // Positioned popover content
-              Positioned(
-                left: _computeLeft(screenSize, padding),
-                top: _computeTop(screenSize, padding),
-                child: SoflumeTheme(
-                  data: widget.theme,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: SofSurface(
-                        variant: SofSurfaceVariant.floating,
-                        borderRadius: effectiveRadius,
-                        padding: const EdgeInsets.all(12.0),
-                        child: widget.content,
-                      ),
-                    ),
+          // Scroll-following positioned popover content
+          CompositedTransformFollower(
+            link: widget.layerLink,
+            showWhenUnlinked: false,
+            targetAnchor: _getTargetAnchor(),
+            followerAnchor: _getFollowerAnchor(),
+            offset: _getFollowerOffset(),
+            child: SoflumeTheme(
+              data: widget.theme,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: SofSurface(
+                    variant: SofSurfaceVariant.floating,
+                    borderRadius: effectiveRadius,
+                    padding: const EdgeInsets.all(12.0),
+                    child: widget.content,
                   ),
                 ),
               ),
-            ],
+            ),
           ),
+        ],
+      ),
     );
-  }
-
-  double _computeLeft(Size screenSize, EdgeInsets padding) {
-    final anchor = widget.anchorRect;
-    double left;
-
-    switch (widget.placement) {
-      case SofPopoverPlacement.top:
-      case SofPopoverPlacement.bottom:
-        left = anchor.left;
-        break;
-      case SofPopoverPlacement.left:
-        left = anchor.left - widget.offset - 200; // estimated default width
-        break;
-      case SofPopoverPlacement.right:
-        left = anchor.right + widget.offset;
-        break;
-    }
-
-    // Viewport edge clamping
-    final minLeft = padding.left + 12.0;
-    final maxLeft = screenSize.width - padding.right - 220.0;
-    return left.clamp(minLeft, maxLeft > minLeft ? maxLeft : minLeft);
-  }
-
-  double _computeTop(Size screenSize, EdgeInsets padding) {
-    final anchor = widget.anchorRect;
-    double top;
-
-    switch (widget.placement) {
-      case SofPopoverPlacement.bottom:
-        top = anchor.bottom + widget.offset;
-        break;
-      case SofPopoverPlacement.top:
-        top = anchor.top - widget.offset - 100; // offset upwards
-        break;
-      case SofPopoverPlacement.left:
-      case SofPopoverPlacement.right:
-        top = anchor.top;
-        break;
-    }
-
-    final minTop = padding.top + 12.0;
-    final maxTop = screenSize.height - padding.bottom - 120.0;
-    return top.clamp(minTop, maxTop > minTop ? maxTop : minTop);
   }
 }

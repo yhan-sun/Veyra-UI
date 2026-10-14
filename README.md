@@ -3,8 +3,9 @@
 > **Soft to touch. Alive in motion.**  
 > 现代化、高级、圆润、柔和、通透、灵动的 Flutter 跨平台设计系统与组件库。
 
-[![Flutter Version](https://img.shields.io/badge/Flutter-%3E%3D3.10-blue.svg)](https://flutter.dev)
-[![Dart Version](https://img.shields.io/badge/Dart-%3E%3D3.0-blue.svg)](https://dart.dev)
+[![CI Quality Gate](https://github.com/yhan-sun/Veyra-UI/actions/workflows/deploy.yml/badge.svg)](https://github.com/yhan-sun/Veyra-UI/actions/workflows/deploy.yml)
+[![Flutter Version](https://img.shields.io/badge/Flutter-%3E%3D3.27-blue.svg)](https://flutter.dev)
+[![Dart Version](https://img.shields.io/badge/Dart-%3E%3D3.6-blue.svg)](https://dart.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub Pages](https://img.shields.io/badge/Demo-GitHub%20Pages-success.svg)](https://yhan-sun.github.io/Veyra-UI/)
 

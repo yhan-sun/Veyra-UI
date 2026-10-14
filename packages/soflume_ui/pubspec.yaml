@@ -5,8 +5,8 @@ homepage: https://github.com/yhan-sun/Veyra-UI
 repository: https://github.com/yhan-sun/Veyra-UI
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
-  flutter: '>=3.10.0'
+  sdk: '>=3.6.0 <4.0.0'
+  flutter: '>=3.27.0'
 
 dependencies:
   flutter:

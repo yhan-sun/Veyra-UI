@@ -5,10 +5,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/yhan-sun/Veyra-UI/actions"><img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status"></a>
+  <a href="https://github.com/yhan-sun/Veyra-UI/actions"><img src="https://github.com/yhan-sun/Veyra-UI/actions/workflows/deploy.yml/badge.svg" alt="CI Quality Gate"></a>
   <a href="https://yhan-sun.github.io/Veyra-UI/"><img src="https://img.shields.io/badge/showcase-live%20demo-blue.svg" alt="Live Showcase"></a>
   <a href="https://github.com/yhan-sun/Veyra-UI/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
-  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/flutter-%3E%3D3.10.0-blue.svg" alt="Flutter"></a>
+  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/flutter-%3E%3D3.27.0-blue.svg" alt="Flutter"></a>
+  <a href="https://dart.dev"><img src="https://img.shields.io/badge/dart-%3E%3D3.6.0-blue.svg" alt="Dart"></a>
 </p>
 
 ---

@@ -26,7 +26,15 @@ class _SoflumeShowcaseAppState extends State<SoflumeShowcaseApp> {
   @override
   void initState() {
     super.initState();
-    _themeData = SoflumeThemeData.light();
+    final params = Uri.base.queryParameters;
+    final isDark = params['theme'] == 'dark';
+    _themeData = isDark ? SoflumeThemeData.dark() : SoflumeThemeData.light();
+    if (params.containsKey('tab')) {
+      final tabIdx = int.tryParse(params['tab'] ?? '');
+      if (tabIdx != null && tabIdx >= 0 && tabIdx <= 4) {
+        _activeNavIndex = tabIdx;
+      }
+    }
   }
 
   void _toggleTheme(bool isDark) {
