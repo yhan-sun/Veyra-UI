@@ -5,7 +5,7 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Soflume UI — 面向未来的 Flutter 高端跨平台设计系统与组件库（Soft Lumen 柔光美学）。">
 
   <!-- iOS meta tags & icons -->
@@ -73,12 +73,14 @@
     }
 
     // Observe when Flutter renders its first frame or mounts the view
-    window.addEventListener('flutter-first-frame', removeLoading);
+    window.addEventListener('flutter-first-frame', () => {
+      requestAnimationFrame(() => requestAnimationFrame(removeLoading));
+    });
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (node.tagName === 'FLUTTER-VIEW' || node.tagName === 'FLT-GLASS-PANE') {
-            removeLoading();
+            requestAnimationFrame(() => requestAnimationFrame(removeLoading));
             observer.disconnect();
             return;
           }
@@ -87,7 +89,7 @@
     });
     observer.observe(document.body, { childList: true, subtree: true });
     // Safety fallback
-    setTimeout(removeLoading, 5000);
+    setTimeout(removeLoading, 6000);
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
