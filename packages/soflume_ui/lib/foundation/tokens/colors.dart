@@ -93,50 +93,50 @@ class SoflumeColors {
 
   /// Factory for Soflume Light theme colors.
   factory SoflumeColors.light({Color? customAccent, Color? customOnAccent}) {
-    final accent = customAccent ?? const Color(0xFF5362E8);
+    final accent = customAccent ?? const Color(0xFF4F46E5);
     final onAccent = customOnAccent ?? computeContrastColor(accent);
     return SoflumeColors(
-      canvas: const Color(0xFFF6F7FB),
+      canvas: const Color(0xFFF8FAFC),
       surface: const Color(0xFFFFFFFF),
       surfaceRaised: const Color(0xFFFFFFFF),
-      surfaceMuted: const Color(0xFFEDF0F7),
-      contentPrimary: const Color(0xFF1B2030),
-      contentSecondary: const Color(0xFF697184),
-      contentTertiary: const Color(0xFF9DA5B4),
-      outlineSubtle: const Color(0xFFE3E7F0),
+      surfaceMuted: const Color(0xFFF1F5F9),
+      contentPrimary: const Color(0xFF0F172A),
+      contentSecondary: const Color(0xFF475569),
+      contentTertiary: const Color(0xFF94A3B8),
+      outlineSubtle: const Color(0xFFE2E8F0),
       outlineFocus: accent.withValues(alpha: 0.45),
       accent: accent,
       onAccent: onAccent,
-      accentSubtle: accent.withValues(alpha: 0.12),
-      success: const Color(0xFF258867),
-      warning: const Color(0xFF9F6A1C),
-      danger: const Color(0xFFC94459),
-      overlay: const Color(0x52000000),
+      accentSubtle: accent.withValues(alpha: 0.10),
+      success: const Color(0xFF059669),
+      warning: const Color(0xFFD97706),
+      danger: const Color(0xFFE11D48),
+      overlay: const Color(0x40000000),
       isDark: false,
     );
   }
 
   /// Factory for Soflume Dark theme colors.
   factory SoflumeColors.dark({Color? customAccent, Color? customOnAccent}) {
-    final accent = customAccent ?? const Color(0xFF9EA8FF);
+    final accent = customAccent ?? const Color(0xFF6366F1);
     final onAccent = customOnAccent ?? computeContrastColor(accent);
     return SoflumeColors(
-      canvas: const Color(0xFF101218),
-      surface: const Color(0xFF1A1D25),
-      surfaceRaised: const Color(0xFF232735),
-      surfaceMuted: const Color(0xFF282C39),
-      contentPrimary: const Color(0xFFF1F3FA),
-      contentSecondary: const Color(0xFFADB4C4),
-      contentTertiary: const Color(0xFF6A7387),
-      outlineSubtle: const Color(0xFF353A48),
+      canvas: const Color(0xFF0B0D14),
+      surface: const Color(0xFF131722),
+      surfaceRaised: const Color(0xFF191F2E),
+      surfaceMuted: const Color(0xFF1E2538),
+      contentPrimary: const Color(0xFFF8FAFC),
+      contentSecondary: const Color(0xFF94A3B8),
+      contentTertiary: const Color(0xFF64748B),
+      outlineSubtle: const Color(0xFF242C3F),
       outlineFocus: accent.withValues(alpha: 0.55),
       accent: accent,
       onAccent: onAccent,
       accentSubtle: accent.withValues(alpha: 0.16),
-      success: const Color(0xFF75D6AD),
-      warning: const Color(0xFFF4C47B),
-      danger: const Color(0xFFFF8B9A),
-      overlay: const Color(0x80000000),
+      success: const Color(0xFF10B981),
+      warning: const Color(0xFFF59E0B),
+      danger: const Color(0xFFF43F5E),
+      overlay: const Color(0x75000000),
       isDark: true,
     );
   }

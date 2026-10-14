@@ -87,33 +87,54 @@ class SofSurface extends StatelessWidget {
           decoration: ShapeDecoration(
             color: color ?? colors.surface,
             shape: squircleShape,
+            shadows: isDark
+                ? null
+                : const [
+                    BoxShadow(
+                      color: Color(0x050F172A),
+                      blurRadius: 10,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
           ),
           clipBehavior: clipBehavior,
           child: content,
         );
 
       case SofSurfaceVariant.floating:
-        final shadowColor = isDark
-            ? const Color(0x60000000)
-            : const Color(0x121A2038);
+        final shadows = isDark
+            ? const [
+                BoxShadow(
+                  color: Color(0x80000000),
+                  blurRadius: 32,
+                  offset: Offset(0, 12),
+                  spreadRadius: -4,
+                ),
+                BoxShadow(
+                  color: Color(0x40000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 3),
+                ),
+              ]
+            : const [
+                BoxShadow(
+                  color: Color(0x0C0F172A),
+                  blurRadius: 28,
+                  offset: Offset(0, 10),
+                  spreadRadius: -4,
+                ),
+                BoxShadow(
+                  color: Color(0x060F172A),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ];
         return Container(
           margin: margin,
           decoration: ShapeDecoration(
             color: color ?? (isDark ? colors.surfaceRaised : colors.surface),
             shape: squircleShape,
-            shadows: [
-              BoxShadow(
-                color: shadowColor,
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-                spreadRadius: -4,
-              ),
-              BoxShadow(
-                color: shadowColor.withValues(alpha: 0.5),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            shadows: shadows,
           ),
           clipBehavior: clipBehavior,
           child: content,
@@ -122,15 +143,15 @@ class SofSurface extends StatelessWidget {
       case SofSurfaceVariant.frost:
         final frostBg = color ??
             (isDark
-                ? const Color(0xB81A1D25)
-                : const Color(0xD8FFFFFF));
+                ? const Color(0xD0131722)
+                : const Color(0xE8FFFFFF));
         return Container(
           margin: margin,
           child: ClipPath(
             clipper: _ShapeBorderClipper(squircleShape),
             clipBehavior: clipBehavior,
             child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
+              filter: ui.ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
               child: DecoratedBox(
                 decoration: ShapeDecoration(
                   color: frostBg,
