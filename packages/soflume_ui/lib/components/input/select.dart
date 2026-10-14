@@ -95,6 +95,7 @@ class SofSelect<T> extends StatefulWidget {
 
 class _SofSelectState<T> extends State<SofSelect<T>> {
   final GlobalKey _triggerKey = GlobalKey();
+  final LayerLink _layerLink = LayerLink();
   final FocusNode _focusNode = FocusNode();
   OverlayEntry? _menuOverlay;
   bool _isOpen = false;
@@ -148,15 +149,24 @@ class _SofSelectState<T> extends State<SofSelect<T>> {
 
     final triggerRect = renderBox.localToGlobal(Offset.zero) & renderBox.size;
     final theme = SoflumeTheme.of(context);
+    final mediaQuery = MediaQuery.of(context);
+    final screenSize = mediaQuery.size;
+    final padding = mediaQuery.padding;
 
-    // Initial highlight index matches current value or first enabled item
+    // Detect available space to dynamically flip upwards if near screen bottom
+    final spaceBelow = screenSize.height - triggerRect.bottom - padding.bottom;
+    final spaceAbove = triggerRect.top - padding.top;
+    final flipUp = spaceBelow < 220 && spaceAbove > spaceBelow;
+
     final currentIdx = widget.items.indexWhere((it) => it.value == widget.value);
     _highlightedIndex = currentIdx >= 0 ? currentIdx : 0;
 
     _menuOverlay = OverlayEntry(
       builder: (ctx) {
         return _SofSelectMenu<T>(
-          triggerRect: triggerRect,
+          layerLink: _layerLink,
+          triggerWidth: triggerRect.width,
+          flipUp: flipUp,
           items: widget.items,
           selectedValue: widget.value,
           highlightedIndex: _highlightedIndex,
@@ -184,6 +194,7 @@ class _SofSelectState<T> extends State<SofSelect<T>> {
     _isOpen = false;
     if (mounted) {
       setState(() {});
+      _focusNode.requestFocus();
     }
   }
 
@@ -230,9 +241,11 @@ class _SofSelectState<T> extends State<SofSelect<T>> {
     final horizontalPad = 14.0 * density.horizontalFactor;
     final selected = _selectedItem;
 
-    return Focus(
-      focusNode: _focusNode,
-      onKeyEvent: _handleKeyEvent,
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: Focus(
+        focusNode: _focusNode,
+        onKeyEvent: _handleKeyEvent,
       child: MouseRegion(
         cursor: widget.disabled ? SystemMouseCursors.forbidden : SystemMouseCursors.click,
         onEnter: (_) => setState(() => _isHovered = true),
@@ -334,13 +347,16 @@ class _SofSelectState<T> extends State<SofSelect<T>> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _SofSelectMenu<T> extends StatefulWidget {
   const _SofSelectMenu({
-    required this.triggerRect,
+    required this.layerLink,
+    required this.triggerWidth,
+    required this.flipUp,
     required this.items,
     required this.selectedValue,
     required this.highlightedIndex,
@@ -350,7 +366,9 @@ class _SofSelectMenu<T> extends StatefulWidget {
     required this.onClose,
   });
 
-  final Rect triggerRect;
+  final LayerLink layerLink;
+  final double triggerWidth;
+  final bool flipUp;
   final List<SofSelectItem<T>> items;
   final T? selectedValue;
   final int highlightedIndex;
@@ -407,20 +425,11 @@ class _SofSelectMenuState<T> extends State<_SofSelectMenu<T>>
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final padding = MediaQuery.of(context).padding;
     final colors = widget.theme.colors;
     final radii = widget.theme.radii;
     final typography = widget.theme.typography;
     final effectiveRadius = widget.borderRadius ?? radii.brMd;
-
-    final trigger = widget.triggerRect;
-    final menuWidth = trigger.width < 200 ? 200.0 : trigger.width;
-    final top = trigger.bottom + 6.0;
-
-    // Viewport edge clamping
-    final maxLeft = screenSize.width - padding.right - menuWidth - 12.0;
-    final left = trigger.left.clamp(padding.left + 12.0, maxLeft > 0 ? maxLeft : 12.0);
+    final menuWidth = widget.triggerWidth < 180 ? 180.0 : widget.triggerWidth;
 
     return Focus(
       focusNode: _focusNode,
@@ -443,31 +452,42 @@ class _SofSelectMenuState<T> extends State<_SofSelectMenu<T>>
             ),
           ),
 
-          // Positioned Menu
-          Positioned(
-            left: left,
-            top: top,
-            width: menuWidth,
-            child: SoflumeTheme(
-              data: widget.theme,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: SofSurface(
-                    variant: SofSurfaceVariant.floating,
-                    borderRadius: effectiveRadius,
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 280),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            for (int i = 0; i < widget.items.length; i++) ...[
-                              _buildMenuItem(widget.items[i], i, colors, radii, typography),
-                            ],
-                          ],
+          // Follower anchored to the trigger via LayerLink
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: CompositedTransformFollower(
+                link: widget.layerLink,
+                showWhenUnlinked: false,
+                targetAnchor: widget.flipUp ? Alignment.topLeft : Alignment.bottomLeft,
+                followerAnchor: widget.flipUp ? Alignment.bottomLeft : Alignment.topLeft,
+                offset: Offset(0, widget.flipUp ? -6.0 : 6.0),
+                child: SizedBox(
+                  width: menuWidth,
+                  child: SoflumeTheme(
+                    data: widget.theme,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: ScaleTransition(
+                        scale: _scaleAnimation,
+                        alignment: widget.flipUp ? Alignment.bottomCenter : Alignment.topCenter,
+                        child: SofSurface(
+                          variant: SofSurfaceVariant.floating,
+                          borderRadius: effectiveRadius,
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 280),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  for (int i = 0; i < widget.items.length; i++) ...[
+                                    _buildMenuItem(widget.items[i], i, colors, radii, typography),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),

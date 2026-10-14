@@ -82,7 +82,7 @@ void main() {
       expect(selectedValue, equals('opt1'));
     });
 
-    testWidgets('ESC closes select menu', (tester) async {
+    testWidgets('ESC closes select menu and restores focus', (tester) async {
       await tester.pumpWidget(
         SoflumeApp(
           home: Center(
@@ -100,11 +100,13 @@ void main() {
       await tester.tap(find.text('Option 1'));
       await tester.pumpAndSettle();
       expect(find.text('Option 2'), findsOneWidget);
+      expect(find.byType(CompositedTransformFollower), findsOneWidget);
 
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
       await tester.pumpAndSettle();
 
       expect(find.text('Option 2'), findsNothing);
+      expect(find.byType(CompositedTransformFollower), findsNothing);
     });
   });
 
@@ -129,6 +131,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Floating Popover Content'), findsOneWidget);
+      expect(find.byType(CompositedTransformFollower), findsOneWidget);
 
       // Tap outside (top left screen corner)
       await tester.tapAt(const Offset(10, 10));
@@ -157,6 +160,34 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Keyboard Popover Content'), findsNothing);
+    });
+
+    testWidgets('SofPopover flips placement when near viewport bottom edge', (tester) async {
+      await tester.pumpWidget(
+        const SoflumeApp(
+          home: Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 10),
+              child: SofPopover(
+                content: Text('Bottom Anchored Content'),
+                child: Text('Near Bottom Edge'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Near Bottom Edge'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bottom Anchored Content'), findsOneWidget);
+      final follower = tester.widget<CompositedTransformFollower>(
+        find.byType(CompositedTransformFollower),
+      );
+      // Because it's at the bottom edge, it should have flipped from bottom to top
+      expect(follower.targetAnchor, equals(Alignment.topLeft));
+      expect(follower.followerAnchor, equals(Alignment.bottomLeft));
     });
   });
 }

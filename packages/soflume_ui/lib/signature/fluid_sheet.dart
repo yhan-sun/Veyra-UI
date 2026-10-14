@@ -147,9 +147,11 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
                         child: NotificationListener<ScrollNotification>(
                           onNotification: (notification) {
                             if (totalHeight <= 0) return false;
+                            // Ensure only vertical scroll interactions drive sheet translation
+                            if (notification.metrics.axis != Axis.vertical) return false;
 
                             if (notification is OverscrollNotification && notification.overscroll < 0) {
-                              final delta = -notification.overscroll / totalHeight;
+                              final delta = notification.overscroll / totalHeight;
                               _controller.value = (_controller.value + delta).clamp(
                                 widget.snapPoints.first * 0.75,
                                 widget.snapPoints.last * 1.05,
@@ -159,7 +161,7 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
                               if (notification.metrics.pixels <= 0 &&
                                   notification.scrollDelta != null &&
                                   notification.scrollDelta! < 0) {
-                                final delta = -notification.scrollDelta! / totalHeight;
+                                final delta = notification.scrollDelta! / totalHeight;
                                 _controller.value = (_controller.value + delta).clamp(
                                   widget.snapPoints.first * 0.75,
                                   widget.snapPoints.last * 1.05,
@@ -168,7 +170,8 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
                             } else if (notification is ScrollEndNotification) {
                               if (!_controller.isAnimating &&
                                   (_controller.value - widget.snapPoints[_currentSnapIndex]).abs() > 0.01) {
-                                _snapToNearest(_controller.value, 0);
+                                final velocity = -(notification.dragDetails?.primaryVelocity ?? 0.0);
+                                _snapToNearest(_controller.value, velocity);
                               }
                             }
                             return false;

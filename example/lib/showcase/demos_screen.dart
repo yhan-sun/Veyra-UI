@@ -25,6 +25,19 @@ class _DemosScreenState extends State<DemosScreen> {
   int _activeAppIndex = 0; // 0: Settings, 1: Music, 2: Files, 3: Dashboard
 
   @override
+  void initState() {
+    super.initState();
+    final app = Uri.base.queryParameters['app'];
+    if (app == 'music' || app == '1') {
+      _activeAppIndex = 1;
+    } else if (app == 'files' || app == '2') {
+      _activeAppIndex = 2;
+    } else if (app == 'dashboard' || app == '3') {
+      _activeAppIndex = 3;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = SoflumeTheme.of(context);
     final colors = theme.colors;

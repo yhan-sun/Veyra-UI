@@ -7,8 +7,8 @@ Soflume UI is an open-source, flagship-grade Flutter design system and component
 ## 🛠 Development Workflow
 
 ### Prerequisites
-- Flutter SDK `>=3.10.0`
-- Dart SDK `>=3.0.0 <4.0.0`
+- Flutter SDK `>=3.27.0`
+- Dart SDK `>=3.6.0 <4.0.0`
 
 ### Repository Structure
 ```

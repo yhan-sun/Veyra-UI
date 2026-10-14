@@ -8,8 +8,8 @@ void main() {
       final light = SoflumeThemeData.light();
       expect(light.brightness, Brightness.light);
       expect(light.isDark, isFalse);
-      expect(light.colors.canvas, const Color(0xFFF6F7FB));
-      expect(light.colors.accent, const Color(0xFF5362E8));
+      expect(light.colors.canvas, const Color(0xFFF8FAFC));
+      expect(light.colors.accent, const Color(0xFF4F46E5));
       expect(light.radii.md, 16.0);
       expect(light.radii.pill, 999.0);
     });
@@ -18,8 +18,8 @@ void main() {
       final dark = SoflumeThemeData.dark();
       expect(dark.brightness, Brightness.dark);
       expect(dark.isDark, isTrue);
-      expect(dark.colors.canvas, const Color(0xFF101218));
-      expect(dark.colors.accent, const Color(0xFF9EA8FF));
+      expect(dark.colors.canvas, const Color(0xFF0B0D14));
+      expect(dark.colors.accent, const Color(0xFF6366F1));
     });
 
     test('Custom brand accent', () {

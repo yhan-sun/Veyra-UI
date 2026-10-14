@@ -204,6 +204,23 @@ class SofButton extends StatelessWidget {
               borderRadius: effectiveRadius,
               side: borderSide,
             ),
+            shadows: isInteractive && variant == SofButtonVariant.filled
+                ? [
+                    BoxShadow(
+                      color: colors.accent.withValues(alpha: colors.isDark ? 0.28 : 0.22),
+                      blurRadius: state.isHovered ? 14 : 8,
+                      offset: Offset(0, state.isHovered ? 4 : 2),
+                    ),
+                  ]
+                : isInteractive && variant == SofButtonVariant.danger
+                    ? [
+                        BoxShadow(
+                          color: colors.danger.withValues(alpha: colors.isDark ? 0.30 : 0.22),
+                          blurRadius: state.isHovered ? 14 : 8,
+                          offset: Offset(0, state.isHovered ? 4 : 2),
+                        ),
+                      ]
+                    : null,
           ),
           child: buttonContent,
         );

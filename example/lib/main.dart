@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:soflume_ui/soflume_ui.dart';
 
@@ -26,7 +27,15 @@ class _SoflumeShowcaseAppState extends State<SoflumeShowcaseApp> {
   @override
   void initState() {
     super.initState();
-    _themeData = SoflumeThemeData.light();
+    final params = Uri.base.queryParameters;
+    final isDark = params['theme'] == 'dark';
+    _themeData = isDark ? SoflumeThemeData.dark() : SoflumeThemeData.light();
+    if (params.containsKey('tab')) {
+      final tabIdx = int.tryParse(params['tab'] ?? '');
+      if (tabIdx != null && tabIdx >= 0 && tabIdx <= 4) {
+        _activeNavIndex = tabIdx;
+      }
+    }
   }
 
   void _toggleTheme(bool isDark) {
@@ -55,6 +64,7 @@ class _SoflumeShowcaseAppState extends State<SoflumeShowcaseApp> {
                 case 0:
                   activeScreen = OverviewScreen(
                     onNavigateToComponents: () => setState(() => _activeNavIndex = 2),
+                    onNavigateToDemos: () => setState(() => _activeNavIndex = 4),
                   );
                   break;
                 case 1:
@@ -83,104 +93,154 @@ class _SoflumeShowcaseAppState extends State<SoflumeShowcaseApp> {
 
               return Column(
                 children: [
-                  // Global Header Bar
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: colors.isDark ? colors.surfaceRaised : colors.surface,
-                      border: Border(
-                        bottom: BorderSide(color: colors.outlineSubtle, width: 0.8),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        // Brand Logo & Title
-                        Row(
-                          children: [
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: colors.accent,
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: colors.accent.withValues(alpha: 0.4),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'S',
-                                style: TextStyle(
-                                  color: Color(0xFFFFFFFF),
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 18,
-                                ),
-                              ),
+                  // Flagship Frosted Glass Header Bar
+                  ClipRect(
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: colors.isDark ? const Color(0xD40B0D14) : const Color(0xE6FFFFFF),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: colors.isDark ? const Color(0x18FFFFFF) : const Color(0x0F000000),
+                              width: 0.8,
                             ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            // Brand Logo & Title with Gradient Squircle
+                            Row(
                               children: [
-                                Text(
-                                  'Soflume UI',
-                                  style: typography.title.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: colors.contentPrimary,
-                                    letterSpacing: -0.3,
+                                Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    'S',
+                                    style: TextStyle(
+                                      color: Color(0xFFFFFFFF),
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 19,
+                                      letterSpacing: -0.5,
+                                    ),
                                   ),
                                 ),
-                                Text(
-                                  'Soft Lumen Design System',
-                                  style: typography.caption.copyWith(
-                                    fontSize: 10,
-                                    color: colors.contentSecondary,
-                                  ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Soflume UI',
+                                          style: typography.title.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                            color: colors.contentPrimary,
+                                            letterSpacing: -0.4,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                          decoration: BoxDecoration(
+                                            color: colors.accent.withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            'v1.0',
+                                            style: typography.caption.copyWith(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                              color: colors.accent,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      'Soft Lumen Design System v1.0',
+                                      style: typography.caption.copyWith(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color: colors.contentSecondary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
 
-                        // Quick Navigation Tabs (For desktop/tablet)
-                        if (!screenClass.isCompact) ...[
-                          const SizedBox(width: 24),
-                          Expanded(
-                            child: Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 520),
-                                child: SofTabs(
-                                  height: 38,
-                                  selectedIndex: _activeNavIndex,
-                                  onChanged: (idx) => setState(() => _activeNavIndex = idx),
-                                  tabs: const [
-                                    SofTabItem(label: '系统概览'),
-                                    SofTabItem(label: '设计规范'),
-                                    SofTabItem(label: '组件展馆'),
-                                    SofTabItem(label: '主题工坊'),
-                                    SofTabItem(label: '场景演示'),
-                                  ],
+                            // Quick Navigation Tabs (For desktop/tablet)
+                            if (!screenClass.isCompact) ...[
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: Center(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 520),
+                                    child: SofTabs(
+                                      height: 38,
+                                      selectedIndex: _activeNavIndex,
+                                      onChanged: (idx) => setState(() => _activeNavIndex = idx),
+                                      tabs: const [
+                                        SofTabItem(label: '系统概览'),
+                                        SofTabItem(label: '设计规范'),
+                                        SofTabItem(label: '组件展馆'),
+                                        SofTabItem(label: '主题工坊'),
+                                        SofTabItem(label: '场景演示'),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                        ] else
-                          const Spacer(),
+                              const SizedBox(width: 16),
+                            ] else
+                              const Spacer(),
 
-                        // Light / Dark Switcher
-                        SofIconButton(
-                          variant: SofButtonVariant.subtle,
-                          icon: SofIcon(
-                            _themeData.isDark ? SofIcons.sun : SofIcons.moon,
-                            size: 18,
-                          ),
-                          onPressed: () => _toggleTheme(!_themeData.isDark),
+                            // Actions: GitHub Link & Theme Switcher
+                            if (!screenClass.isCompact) ...[
+                              SofButton(
+                                variant: SofButtonVariant.ghost,
+                                size: SofButtonSize.small,
+                                leading: SofIcon(SofIcons.github, size: 16, color: colors.contentPrimary),
+                                onPressed: () {
+                                  showSofToast(
+                                    context: context,
+                                    message: 'GitHub: yhan-sun/Veyra-UI',
+                                    variant: SofBadgeVariant.accent,
+                                  );
+                                },
+                                child: const Text('GitHub'),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            SofIconButton(
+                              variant: SofButtonVariant.subtle,
+                              icon: SofIcon(
+                                _themeData.isDark ? SofIcons.sun : SofIcons.moon,
+                                size: 18,
+                              ),
+                              onPressed: () => _toggleTheme(!_themeData.isDark),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
 
