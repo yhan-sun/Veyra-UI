@@ -91,5 +91,47 @@ void main() {
       expect(find.text('10,420'), findsOneWidget);
       expect(find.text('+12% from yesterday'), findsOneWidget);
     });
+
+    testWidgets('SofFluidSheet renders content and handles drag snapping', (tester) async {
+      int? changedSnap;
+
+      await tester.pumpWidget(
+        SoflumeTheme(
+          data: SoflumeThemeData.light(),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              height: 600,
+              width: 400,
+              child: SofFluidSheet(
+                snapPoints: const [0.3, 0.6, 0.9],
+                initialSnapIndex: 1,
+                onSnapChanged: (index) {
+                  changedSnap = index;
+                },
+                builder: (context, scrollController) {
+                  return ListView(
+                    controller: scrollController,
+                    children: const [
+                      Text('Item 1'),
+                      Text('Item 2'),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Item 1'), findsOneWidget);
+      expect(find.text('Item 2'), findsOneWidget);
+
+      // Drag handle up to trigger snap change
+      await tester.drag(find.byType(GestureDetector).first, const Offset(0, -200));
+      await tester.pumpAndSettle();
+
+      expect(changedSnap, isNotNull);
+    });
   });
 }

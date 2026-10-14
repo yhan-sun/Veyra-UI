@@ -25,11 +25,45 @@ class SoflumeColors {
     required this.isDark,
   });
 
-  /// Computes a high-contrast foreground color (WCAG AA compliant)
-  /// based on relative luminance of the given background color.
-  static Color computeContrastColor(Color background) {
-    final luminance = background.computeLuminance();
-    return luminance > 0.45 ? const Color(0xFF11162C) : const Color(0xFFFFFFFF);
+  /// Computes the WCAG 2.1 relative luminance contrast ratio between two colors.
+  ///
+  /// The returned value ranges from 1.0 (identical luminance) to 21.0 (pure black on pure white).
+  /// - WCAG AA requires at least 4.5:1 for normal text and 3.0:1 for large text.
+  /// - WCAG AAA requires at least 7.0:1 for normal text and 4.5:1 for large text.
+  static double contrastRatio(Color foreground, Color background) {
+    final lum1 = foreground.computeLuminance();
+    final lum2 = background.computeLuminance();
+    final lighter = lum1 > lum2 ? lum1 : lum2;
+    final darker = lum1 > lum2 ? lum2 : lum1;
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  /// Computes an accessible, high-contrast foreground color (WCAG AA/AAA compliant)
+  /// for the given [background] color.
+  ///
+  /// Evaluates the true WCAG contrast ratio between candidate foreground colors and
+  /// [background]. By default, tests against standard dark text ([darkCandidate], default #11162C)
+  /// and light text ([lightCandidate], default #FFFFFF).
+  ///
+  /// If one candidate meets or exceeds [minContrast] (default 4.5 for WCAG AA normal text),
+  /// and the other does not, the compliant candidate is chosen. Otherwise, the candidate
+  /// with the higher contrast ratio is selected.
+  static Color computeContrastColor(
+    Color background, {
+    Color darkCandidate = const Color(0xFF11162C),
+    Color lightCandidate = const Color(0xFFFFFFFF),
+    double minContrast = 4.5,
+  }) {
+    final darkRatio = contrastRatio(darkCandidate, background);
+    final lightRatio = contrastRatio(lightCandidate, background);
+
+    if (lightRatio >= minContrast && darkRatio < minContrast) {
+      return lightCandidate;
+    }
+    if (darkRatio >= minContrast && lightRatio < minContrast) {
+      return darkCandidate;
+    }
+    return lightRatio >= darkRatio ? lightCandidate : darkCandidate;
   }
 
   /// Factory for Soflume Light theme colors.

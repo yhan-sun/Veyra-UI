@@ -84,18 +84,24 @@ class SofDialog extends StatelessWidget {
 
 /// Displays a modal [SofDialog] with spring animation and blurred backdrop.
 ///
-/// Supports ESC key dismissal, Android Back / system pop handling, and returns typed result [T].
+/// Supports ESC key dismissal, Android Back / system pop handling, barrier accessibility labels,
+/// nested/root navigators, and returns typed result [T].
 Future<T?> showSofDialog<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   bool barrierDismissible = true,
+  bool useRootNavigator = true,
+  String? barrierLabel,
+  RouteSettings? routeSettings,
 }) {
   final theme = SoflumeTheme.of(context);
 
-  return Navigator.of(context, rootNavigator: true).push<T>(
+  return Navigator.of(context, rootNavigator: useRootNavigator).push<T>(
     PageRouteBuilder<T>(
+      settings: routeSettings,
       opaque: false,
       barrierDismissible: barrierDismissible,
+      barrierLabel: barrierLabel ?? (barrierDismissible ? 'Dismiss' : null),
       barrierColor: theme.colors.overlay,
       transitionDuration: theme.motion.getEffectiveDuration(theme.motion.durationRegular),
       reverseTransitionDuration: theme.motion.getEffectiveDuration(theme.motion.durationQuick),
@@ -111,7 +117,7 @@ Future<T?> showSofDialog<T>({
                 DismissIntent: CallbackAction<DismissIntent>(
                   onInvoke: (intent) {
                     if (barrierDismissible) {
-                      Navigator.of(context).pop();
+                      Navigator.maybeOf(context)?.maybePop();
                     }
                     return null;
                   },

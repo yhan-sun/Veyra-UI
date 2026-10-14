@@ -13,7 +13,7 @@ class SofIcon extends StatelessWidget {
   /// 图标尺寸（宽与高相等），默认自适应当前上下文（一般为 20.0）
   final double? size;
 
-  /// 图标着色。未指定时自动沿用当前 [IconTheme] 或 [SoflumeTheme.colors.contentPrimary]
+  /// 图标着色。未指定时自动沿用当前 [IconTheme] 或 [SoflumeColors.contentPrimary]
   final Color? color;
 
   /// 无障碍读屏标签

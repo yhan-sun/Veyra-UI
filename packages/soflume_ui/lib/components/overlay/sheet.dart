@@ -49,7 +49,7 @@ class SofSheet extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   onVerticalDragEnd: (details) {
                     if (details.primaryVelocity != null && details.primaryVelocity! > 250) {
-                      Navigator.maybeOf(context)?.pop();
+                      Navigator.maybeOf(context)?.maybePop();
                     }
                   },
                   child: Container(
@@ -94,18 +94,24 @@ class SofSheet extends StatelessWidget {
 
 /// Displays a modal [SofSheet] sliding up from the bottom.
 ///
-/// Supports ESC key dismiss, barrier dismiss, downward swipe on handle, and PopScope.
+/// Supports ESC key dismiss, barrier dismiss, barrier accessibility labels,
+/// downward swipe on handle, nested/root navigators, and PopScope.
 Future<T?> showSofSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   bool isDismissible = true,
+  bool useRootNavigator = true,
+  String? barrierLabel,
+  RouteSettings? routeSettings,
 }) {
   final theme = SoflumeTheme.of(context);
 
-  return Navigator.of(context, rootNavigator: true).push<T>(
+  return Navigator.of(context, rootNavigator: useRootNavigator).push<T>(
     PageRouteBuilder<T>(
+      settings: routeSettings,
       opaque: false,
       barrierDismissible: isDismissible,
+      barrierLabel: barrierLabel ?? (isDismissible ? 'Dismiss' : null),
       barrierColor: theme.colors.overlay,
       transitionDuration: theme.motion.getEffectiveDuration(theme.motion.durationExpressive),
       reverseTransitionDuration: theme.motion.getEffectiveDuration(theme.motion.durationRegular),
@@ -121,7 +127,7 @@ Future<T?> showSofSheet<T>({
                 DismissIntent: CallbackAction<DismissIntent>(
                   onInvoke: (intent) {
                     if (isDismissible) {
-                      Navigator.of(context).pop();
+                      Navigator.maybeOf(context)?.maybePop();
                     }
                     return null;
                   },

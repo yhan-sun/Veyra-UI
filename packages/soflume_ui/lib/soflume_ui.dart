@@ -44,6 +44,7 @@ export 'components/selection/radio.dart';
 export 'components/selection/segmented_control.dart';
 export 'components/slider/slider.dart';
 export 'components/input/text_field.dart';
+export 'components/input/select.dart';
 
 // Components - Containers & Structure
 export 'components/card/card.dart';
@@ -65,6 +66,7 @@ export 'components/navigation/floating_navigation.dart';
 export 'components/overlay/dialog.dart';
 export 'components/overlay/sheet.dart';
 export 'components/overlay/toast.dart';
+export 'components/overlay/popover.dart';
 
 // Components - Display
 export 'components/display/avatar.dart';

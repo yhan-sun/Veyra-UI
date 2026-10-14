@@ -2,7 +2,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import '../../foundation/theme/theme.dart';
 import '../../foundation/shapes/squircle_border.dart';
-import '../../foundation/tokens/radii.dart';
 
 /// Item descriptor for [SofSegmentedControl].
 class SofSegment<T> {

@@ -103,5 +103,49 @@ void main() {
 
       expect(find.text('Hello Soflume Toast'), findsOneWidget);
     });
+
+    testWidgets('Preserves open dialog and route state across parent rebuilds / theme changes', (tester) async {
+      final isDarkNotifier = ValueNotifier<bool>(false);
+
+      await tester.pumpWidget(
+        ValueListenableBuilder<bool>(
+          valueListenable: isDarkNotifier,
+          builder: (context, isDark, _) {
+            return SoflumeApp(
+              theme: isDark ? SoflumeThemeData.dark() : SoflumeThemeData.light(),
+              home: Builder(
+                builder: (ctx) {
+                  return SofButton(
+                    onPressed: () {
+                      showSofDialog<void>(
+                        context: ctx,
+                        builder: (_) => const SofDialog(
+                          title: Text('Rebuild Test Dialog'),
+                          child: Text('Dialog Remains Intact'),
+                        ),
+                      );
+                    },
+                    child: const Text('Open'),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      );
+
+      // Open dialog
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      expect(find.text('Rebuild Test Dialog'), findsOneWidget);
+
+      // Parent rebuilds SoflumeApp with dark theme
+      isDarkNotifier.value = true;
+      await tester.pumpAndSettle();
+
+      // Dialog MUST still be open and visible
+      expect(find.text('Rebuild Test Dialog'), findsOneWidget);
+      expect(find.text('Dialog Remains Intact'), findsOneWidget);
+    });
   });
 }

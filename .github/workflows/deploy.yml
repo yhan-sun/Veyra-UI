@@ -1,21 +1,25 @@
-name: Deploy Soflume UI Showcase to GitHub Pages
+name: CI Quality Gate & Deploy Showcase
 
 on:
   push:
     branches:
       - main
+      - 'phase-*'
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: write
 
 concurrency:
-  group: 'pages'
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  quality-gate:
+    name: Lint, Test & Package Verification
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -27,32 +31,41 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Get Dependencies (Core Package)
+      - name: Install Dependencies
         run: |
-          cd packages/soflume_ui
-          flutter pub get
+          cd packages/soflume_ui && flutter pub get
+          cd ../../example && flutter pub get
+
+      - name: Run Static Analysis
+        run: flutter analyze
 
       - name: Run Core Library Tests
         run: |
           cd packages/soflume_ui
           flutter test
 
-      - name: Get Dependencies (Example Showcase)
-        run: |
-          cd example
-          flutter pub get
-
-      - name: Run Example Widget Tests
+      - name: Run Example Showcase Tests
         run: |
           cd example
           flutter test
 
-      - name: Build Web Showcase
+      - name: Verify Package Dry-Run
+        run: |
+          cd packages/soflume_ui
+          flutter pub publish --dry-run
+
+      - name: Verify DartDoc Documentation Generation
+        run: |
+          cd packages/soflume_ui
+          dart doc .
+
+      - name: Build Web Showcase Release
         run: |
           cd example
           flutter build web --base-href "/Veyra-UI/" --release
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages (Main Branch Only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

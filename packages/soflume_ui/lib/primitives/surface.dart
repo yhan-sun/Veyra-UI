@@ -21,7 +21,7 @@ enum SofSurfaceVariant {
 /// A container widget that renders the Soft Lumen material surfaces.
 ///
 /// Automatically uses [SofSquircleBorder] for flagship continuous curvature
-/// and handles high-performance fallback when [reducedTransparency] is enabled.
+/// and handles high-performance fallback when reduced transparency is enabled.
 class SofSurface extends StatelessWidget {
   const SofSurface({
     super.key,

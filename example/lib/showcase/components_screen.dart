@@ -24,6 +24,7 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
   SofMorphingState _morphState = SofMorphingState.idle;
   bool _buttonLoading = false;
   bool _componentDisabled = false;
+  String? _selectedFramework = 'flutter';
   final TextEditingController _inputController = TextEditingController(text: 'Soft Lumen 柔光设计');
   final FocusNode _inputFocusNode = FocusNode();
 
@@ -547,6 +548,46 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 24),
+
+        _buildPlaygroundCard(
+          title: '3. SofSelect (柔光下拉选择器)',
+          desc: '支持选项图标、选中状态标识、禁用项、键盘焦点导航与边界自动吸附。',
+          code: 'SofSelect<String>(\n  label: "跨平台渲染架构",\n  value: _selectedFramework,\n  items: const [\n    SofSelectItem(value: "flutter", label: "Flutter 3.x", icon: SofIcon(SofIcons.zap, size: 16)),\n    SofSelectItem(value: "compose", label: "Jetpack Compose", icon: SofIcon(SofIcons.component, size: 16)),\n    SofSelectItem(value: "swiftui", label: "SwiftUI Native", icon: SofIcon(SofIcons.layout, size: 16)),\n  ],\n  onChanged: (val) => setState(() => _selectedFramework = val),\n);',
+          preview: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 380),
+            child: SofSelect<String>(
+              label: '跨平台技术架构',
+              value: _selectedFramework,
+              placeholder: '请选择底层技术框架',
+              helperText: '选择当前项目使用的核心 UI 渲染架构',
+              items: const [
+                SofSelectItem(
+                  value: 'flutter',
+                  label: 'Flutter (Skia / Impeller)',
+                  icon: SofIcon(SofIcons.zap, size: 16),
+                ),
+                SofSelectItem(
+                  value: 'compose',
+                  label: 'Jetpack Compose Multiplatform',
+                  icon: SofIcon(SofIcons.component, size: 16),
+                ),
+                SofSelectItem(
+                  value: 'swiftui',
+                  label: 'SwiftUI Native',
+                  icon: SofIcon(SofIcons.layout, size: 16),
+                ),
+                SofSelectItem(
+                  value: 'legacy',
+                  label: 'Legacy WebView (已停用)',
+                  icon: SofIcon(SofIcons.shield, size: 16),
+                  enabled: false,
+                ),
+              ],
+              onChanged: (val) => setState(() => _selectedFramework = val),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -927,6 +968,58 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
                   variant: SofBadgeVariant.accent,
                 ),
                 child: const Text('Accent Toast'),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        _buildPlaygroundCard(
+          title: '3. SofPopover (悬浮上下文气泡浮层)',
+          desc: '基于目标锚点定位，支持视口边缘自适应吸附防溢出、毛玻璃材质与 ESC / 外部点击自动关闭。',
+          code: 'SofPopover(\n  placement: SofPopoverPlacement.bottom,\n  content: const Text("气泡上下文操作详情..."),\n  child: SofButton(child: const Text("触发气泡")),\n);',
+          preview: Wrap(
+            spacing: 16,
+            runSpacing: 12,
+            children: [
+              SofPopover(
+                placement: SofPopoverPlacement.bottom,
+                content: SizedBox(
+                  width: 240,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '快速操作上下文',
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '轻量气泡浮层，自动感知屏幕边缘避让溢出，支持键盘 ESC 键快捷退出。',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          SofButton(
+                            size: SofButtonSize.small,
+                            variant: SofButtonVariant.subtle,
+                            onPressed: () {},
+                            child: const Text('了解详情'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                child: SofButton(
+                  variant: SofButtonVariant.subtle,
+                  leading: const SofIcon(SofIcons.info, size: 16),
+                  onPressed: () {},
+                  child: const Text('点击打开 SofPopover'),
+                ),
               ),
             ],
           ),

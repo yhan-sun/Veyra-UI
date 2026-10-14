@@ -55,8 +55,9 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
     int targetIndex = 0;
     double minDistance = double.infinity;
 
-    // Projected extent based on velocity
-    final projected = currentExtent + (velocity * 0.0003);
+    // Projected extent based on velocity (damped to prevent erratic multi-snap jumps)
+    final clampedVelocity = velocity.clamp(-2500.0, 2500.0);
+    final projected = currentExtent + (clampedVelocity * 0.00025);
 
     for (int i = 0; i < widget.snapPoints.length; i++) {
       final dist = (widget.snapPoints[i] - projected).abs();
@@ -115,9 +116,10 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onVerticalDragUpdate: (details) {
+                          if (totalHeight <= 0) return;
                           final deltaFraction = -details.primaryDelta! / totalHeight;
                           _controller.value = (_controller.value + deltaFraction).clamp(
-                            widget.snapPoints.first * 0.8,
+                            widget.snapPoints.first * 0.75,
                             widget.snapPoints.last * 1.05,
                           );
                         },
@@ -144,15 +146,28 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
                       Expanded(
                         child: NotificationListener<ScrollNotification>(
                           onNotification: (notification) {
+                            if (totalHeight <= 0) return false;
+
                             if (notification is OverscrollNotification && notification.overscroll < 0) {
                               final delta = -notification.overscroll / totalHeight;
                               _controller.value = (_controller.value + delta).clamp(
-                                widget.snapPoints.first * 0.8,
+                                widget.snapPoints.first * 0.75,
                                 widget.snapPoints.last * 1.05,
                               );
                               return true;
+                            } else if (notification is ScrollUpdateNotification) {
+                              if (notification.metrics.pixels <= 0 &&
+                                  notification.scrollDelta != null &&
+                                  notification.scrollDelta! < 0) {
+                                final delta = -notification.scrollDelta! / totalHeight;
+                                _controller.value = (_controller.value + delta).clamp(
+                                  widget.snapPoints.first * 0.75,
+                                  widget.snapPoints.last * 1.05,
+                                );
+                              }
                             } else if (notification is ScrollEndNotification) {
-                              if (_controller.value != widget.snapPoints[_currentSnapIndex]) {
+                              if (!_controller.isAnimating &&
+                                  (_controller.value - widget.snapPoints[_currentSnapIndex]).abs() > 0.01) {
                                 _snapToNearest(_controller.value, 0);
                               }
                             }

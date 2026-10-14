@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'theme.dart';
-import 'theme_data.dart';
 
 /// The top-level application widget for apps using Soflume UI.
 ///
@@ -126,7 +125,6 @@ class SoflumeApp extends StatelessWidget {
 
     if (routerDelegate != null) {
       return WidgetsApp.router(
-        key: GlobalObjectKey(this),
         routeInformationProvider: routeInformationProvider,
         routeInformationParser: routeInformationParser,
         routerDelegate: routerDelegate!,
@@ -153,7 +151,6 @@ class SoflumeApp extends StatelessWidget {
     }
 
     return WidgetsApp(
-      key: GlobalObjectKey(this),
       navigatorKey: navigatorKey,
       navigatorObservers: navigatorObservers,
       initialRoute: initialRoute,
