@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import '../foundation/theme/theme.dart';
 import '../primitives/surface.dart';
 import '../primitives/pressable.dart';
+import '../primitives/focus_ring.dart';
 
 /// Brand Signature: Dynamic interactive tile for music, metrics, sensors, and status dashboards.
 class SofAdaptiveTile extends StatelessWidget {
@@ -37,6 +38,8 @@ class SofAdaptiveTile extends StatelessWidget {
     final typography = theme.typography;
     final radii = theme.radii;
 
+    final hasHeader = icon != null || statusBadge != null;
+
     final content = SofSurface(
       variant: variant,
       borderRadius: radii.brLg,
@@ -47,33 +50,37 @@ class SofAdaptiveTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if (icon != null)
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: colors.accent.withValues(alpha: colors.isDark ? 0.2 : 0.1),
-                    borderRadius: BorderRadius.circular(10),
+          if (hasHeader) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (icon != null)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colors.accent.withValues(alpha: colors.isDark ? 0.2 : 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: IconTheme(
+                      data: IconThemeData(color: colors.accent, size: 20),
+                      child: icon!,
+                    ),
                   ),
-                  child: IconTheme(
-                    data: IconThemeData(color: colors.accent, size: 20),
-                    child: icon!,
-                  ),
-                ),
-              if (statusBadge != null) statusBadge!,
-            ],
-          ),
-          const SizedBox(height: 14),
-          DefaultTextStyle.merge(
-            style: typography.headline.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colors.contentPrimary,
+                if (statusBadge != null) statusBadge!,
+              ],
             ),
-            child: value ?? const SizedBox(),
-          ),
-          const SizedBox(height: 4),
+            const SizedBox(height: 14),
+          ],
+          if (value != null) ...[
+            DefaultTextStyle.merge(
+              style: typography.headline.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colors.contentPrimary,
+              ),
+              child: value!,
+            ),
+            const SizedBox(height: 4),
+          ],
           DefaultTextStyle.merge(
             style: typography.body.copyWith(
               fontWeight: FontWeight.w500,
@@ -102,7 +109,13 @@ class SofAdaptiveTile extends StatelessWidget {
       return SofPressable(
         onPressed: onPressed,
         pressScale: 0.98,
-        child: content,
+        builder: (context, state) {
+          return SofFocusRing(
+            focused: state.isFocused,
+            borderRadius: radii.brLg,
+            child: content,
+          );
+        },
       );
     }
 

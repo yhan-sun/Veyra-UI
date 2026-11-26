@@ -1,6 +1,9 @@
 import 'package:flutter/widgets.dart';
+import '../../foundation/icons/icon.dart';
+import '../../foundation/icons/soflume_icons.dart';
 import '../../foundation/theme/theme.dart';
 import '../../foundation/shapes/squircle_border.dart';
+import '../../primitives/focus_ring.dart';
 import '../../primitives/pressable.dart';
 
 /// Interactive chip for filters, tags, and selections.
@@ -29,27 +32,24 @@ class SofChip extends StatelessWidget {
     final typography = theme.typography;
     final radii = theme.radii;
 
-    final isInteractive = enabled && (onSelected != null || onDeleted != null);
+    final isInteractive = enabled && onSelected != null;
 
     final bgColor = selected
         ? (colors.isDark ? colors.accent.withValues(alpha: 0.25) : colors.accentSubtle)
-        : (colors.isDark ? colors.surfaceMuted : colors.surfaceMuted);
+        : colors.surfaceMuted;
 
-    final textColor = selected ? colors.accent : colors.contentPrimary;
+    final textColor = selected ? colors.onAccentSubtle : colors.contentPrimary;
     final borderColor = selected ? colors.accent : colors.outlineSubtle;
 
-    return SofPressable(
-      onPressed: isInteractive && onSelected != null ? () => onSelected!(!selected) : null,
-      enabled: isInteractive,
-      pressScale: 0.96,
-      builder: (context, state) {
-        return AnimatedContainer(
+    Widget buildChipContainer({required bool isHovered, required bool isFocused}) {
+      return SofFocusRing(
+        focused: isFocused,
+        borderRadius: radii.brPill,
+        child: AnimatedContainer(
           duration: theme.motion.getEffectiveDuration(theme.motion.durationInstant),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: ShapeDecoration(
-            color: state.isHovered
-                ? Color.lerp(bgColor, colors.accent, 0.15)!
-                : bgColor,
+            color: isHovered ? Color.lerp(bgColor, colors.accent, 0.15)! : bgColor,
             shape: SofSquircleBorder(
               borderRadius: radii.brPill,
               side: BorderSide(
@@ -74,21 +74,43 @@ class SofChip extends StatelessWidget {
               ),
               if (onDeleted != null) ...[
                 const SizedBox(width: 6),
-                GestureDetector(
-                  onTap: onDeleted,
-                  child: IconTheme(
-                    data: IconThemeData(
-                      color: textColor.withValues(alpha: 0.8),
-                      size: 14,
-                    ),
-                    child: const Text('×', style: TextStyle(fontSize: 16, height: 1)),
+                SofPressable(
+                  onPressed: enabled ? onDeleted : null,
+                  enabled: enabled,
+                  semanticLabel: 'Remove',
+                  pressScale: 0.88,
+                  child: SofIcon(
+                    SofIcons.x,
+                    size: 13,
+                    color: textColor.withValues(alpha: 0.85),
                   ),
                 ),
               ],
             ],
           ),
-        );
-      },
+        ),
+      );
+    }
+
+    if (!isInteractive) {
+      return Opacity(
+        opacity: enabled ? 1.0 : 0.45,
+        child: buildChipContainer(isHovered: false, isFocused: false),
+      );
+    }
+
+    return Semantics(
+      selected: selected,
+      enabled: enabled,
+      child: SofPressable(
+        onPressed: () => onSelected!(!selected),
+        enabled: enabled,
+        pressScale: 0.96,
+        builder: (context, state) => buildChipContainer(
+          isHovered: state.isHovered,
+          isFocused: state.isFocused,
+        ),
+      ),
     );
   }
 }

@@ -55,7 +55,7 @@ void main() {
       expect(pressed, isFalse);
     });
 
-    testWidgets('Loading button hides label and shows spinner', (tester) async {
+    testWidgets('Loading button hides label and does not dim opacity', (tester) async {
       await tester.pumpWidget(
         SoflumeTheme(
           data: SoflumeThemeData.light(),
@@ -73,6 +73,8 @@ void main() {
       );
 
       expect(find.text('Loading'), findsNothing);
+      final opacities = tester.widgetList<Opacity>(find.byType(Opacity));
+      expect(opacities.where((o) => o.opacity < 1.0), isEmpty);
     });
   });
 }

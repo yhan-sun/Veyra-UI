@@ -33,7 +33,7 @@ class SofRadio<T> extends StatefulWidget {
 
 class _SofRadioState<T> extends State<SofRadio<T>> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _scaleAnimation;
+  late CurvedAnimation _scaleAnimation;
   late FocusNode _focusNode;
   bool _isFocused = false;
 
@@ -56,6 +56,16 @@ class _SofRadioState<T> extends State<SofRadio<T>> with SingleTickerProviderStat
 
     _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.addListener(_handleFocusChange);
+    _isFocused = _focusNode.hasFocus;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final motion = SoflumeTheme.of(context).motion;
+    _controller.duration = motion.getEffectiveDuration(motion.durationQuick);
+    _scaleAnimation.curve = motion.getEffectiveCurve(motion.springSnappy);
+    _scaleAnimation.reverseCurve = motion.getEffectiveCurve(motion.springSettle);
   }
 
   @override
@@ -99,6 +109,7 @@ class _SofRadioState<T> extends State<SofRadio<T>> with SingleTickerProviderStat
     if (widget.focusNode == null) {
       _focusNode.dispose();
     }
+    _scaleAnimation.dispose();
     _controller.dispose();
     super.dispose();
   }

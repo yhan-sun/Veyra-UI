@@ -1,7 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import '../foundation/theme/theme.dart';
-import '../foundation/motion/spring_curve.dart';
 import '../primitives/surface.dart';
 
 /// Brand Signature: Gesture-driven, interruptible draggable sheet with continuous spring physics,
@@ -44,6 +43,18 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
   }
 
   @override
+  void didUpdateWidget(SofFluidSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.snapPoints != oldWidget.snapPoints) {
+      _currentSnapIndex = _currentSnapIndex.clamp(0, widget.snapPoints.length - 1);
+      _controller.value = _controller.value.clamp(
+        widget.snapPoints.first,
+        widget.snapPoints.last,
+      );
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
@@ -74,10 +85,11 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
       widget.onSnapChanged?.call(targetIndex);
     }
 
+    final motion = SoflumeTheme.of(context).motion;
     _controller.animateTo(
       targetExtent,
-      duration: const Duration(milliseconds: 320),
-      curve: const SofSpringCurve.settle(),
+      duration: motion.getEffectiveDuration(motion.durationExpressive),
+      curve: motion.getEffectiveCurve(motion.springSettle),
     );
   }
 
@@ -117,7 +129,8 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
                         behavior: HitTestBehavior.opaque,
                         onVerticalDragUpdate: (details) {
                           if (totalHeight <= 0) return;
-                          final deltaFraction = -details.primaryDelta! / totalHeight;
+                          final delta = details.primaryDelta ?? 0.0;
+                          final deltaFraction = -delta / totalHeight;
                           _controller.value = (_controller.value + deltaFraction).clamp(
                             widget.snapPoints.first * 0.75,
                             widget.snapPoints.last * 1.05,
@@ -158,13 +171,21 @@ class _SofFluidSheetState extends State<SofFluidSheet> with SingleTickerProvider
                               );
                               return true;
                             } else if (notification is ScrollUpdateNotification) {
-                              if (notification.metrics.pixels <= 0 &&
-                                  notification.scrollDelta != null &&
-                                  notification.scrollDelta! < 0) {
-                                final delta = notification.scrollDelta! / totalHeight;
-                                _controller.value = (_controller.value + delta).clamp(
+                              final delta = notification.scrollDelta;
+                              if (delta != null && delta < 0 && notification.metrics.pixels <= 0) {
+                                final deltaFrac = delta / totalHeight;
+                                _controller.value = (_controller.value + deltaFrac).clamp(
                                   widget.snapPoints.first * 0.75,
                                   widget.snapPoints.last * 1.05,
+                                );
+                              } else if (delta != null &&
+                                  delta > 0 &&
+                                  _controller.value < widget.snapPoints.last - 0.005) {
+                                // Expand sheet upwards before scrolling inner content when not yet at max snap
+                                final deltaFrac = delta / totalHeight;
+                                _controller.value = (_controller.value + deltaFrac).clamp(
+                                  widget.snapPoints.first * 0.75,
+                                  widget.snapPoints.last,
                                 );
                               }
                             } else if (notification is ScrollEndNotification) {

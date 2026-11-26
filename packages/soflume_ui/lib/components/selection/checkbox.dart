@@ -32,7 +32,7 @@ class SofCheckbox extends StatefulWidget {
 
 class _SofCheckboxState extends State<SofCheckbox> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _checkProgress;
+  late CurvedAnimation _curvedAnimation;
   late FocusNode _focusNode;
   bool _isFocused = false;
 
@@ -45,7 +45,7 @@ class _SofCheckboxState extends State<SofCheckbox> with SingleTickerProviderStat
       value: (widget.value ?? false) ? 1.0 : 0.0,
     );
 
-    _checkProgress = CurvedAnimation(
+    _curvedAnimation = CurvedAnimation(
       parent: _controller,
       curve: const SofSpringCurve.snappy(),
       reverseCurve: const SofSpringCurve.settle(),
@@ -53,6 +53,16 @@ class _SofCheckboxState extends State<SofCheckbox> with SingleTickerProviderStat
 
     _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.addListener(_handleFocusChange);
+    _isFocused = _focusNode.hasFocus;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final motion = SoflumeTheme.of(context).motion;
+    _controller.duration = motion.getEffectiveDuration(motion.durationQuick);
+    _curvedAnimation.curve = motion.getEffectiveCurve(motion.springSnappy);
+    _curvedAnimation.reverseCurve = motion.getEffectiveCurve(motion.springSettle);
   }
 
   @override
@@ -100,6 +110,7 @@ class _SofCheckboxState extends State<SofCheckbox> with SingleTickerProviderStat
     if (widget.focusNode == null) {
       _focusNode.dispose();
     }
+    _curvedAnimation.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -111,11 +122,12 @@ class _SofCheckboxState extends State<SofCheckbox> with SingleTickerProviderStat
     final isInteractive = widget.enabled && widget.onChanged != null;
     final isChecked = widget.value == true;
     final isIndeterminate = widget.value == null;
+    final boxRadius = BorderRadius.circular(widget.size * 0.32);
 
     final box = AnimatedBuilder(
-      animation: _checkProgress,
+      animation: _curvedAnimation,
       builder: (context, _) {
-        final t = _checkProgress.value;
+        final t = _curvedAnimation.value;
         final active = isChecked || isIndeterminate;
 
         final bgColor = active
@@ -130,7 +142,7 @@ class _SofCheckboxState extends State<SofCheckbox> with SingleTickerProviderStat
           decoration: ShapeDecoration(
             color: bgColor,
             shape: SofSquircleBorder(
-              borderRadius: BorderRadius.circular(widget.size * 0.32),
+              borderRadius: boxRadius,
               side: BorderSide(
                 color: borderColor,
                 width: 1.5,
@@ -152,7 +164,7 @@ class _SofCheckboxState extends State<SofCheckbox> with SingleTickerProviderStat
 
     final interactiveBox = SofFocusRing(
       focused: _isFocused,
-      borderRadius: BorderRadius.circular(widget.size * 0.35),
+      borderRadius: boxRadius,
       child: box,
     );
 
@@ -177,6 +189,7 @@ class _SofCheckboxState extends State<SofCheckbox> with SingleTickerProviderStat
 
     return Semantics(
       checked: isChecked,
+      mixed: isIndeterminate,
       enabled: isInteractive,
       child: FocusableActionDetector(
         focusNode: _focusNode,
@@ -242,8 +255,10 @@ class _CheckmarkPainter extends CustomPainter {
     path.lineTo(size.width * 0.88, size.height * 0.25);
 
     // Animate checkmark draw
-    final pathMetrics = path.computeMetrics().first;
-    final extract = pathMetrics.extractPath(0.0, pathMetrics.length * progress);
+    final iterator = path.computeMetrics().iterator;
+    if (!iterator.moveNext()) return;
+    final pathMetric = iterator.current;
+    final extract = pathMetric.extractPath(0.0, pathMetric.length * progress);
     canvas.drawPath(extract, paint);
   }
 

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import '../../foundation/icons/icon.dart';
@@ -43,7 +44,7 @@ class SofSelectItem<T> {
 }
 
 /// A Soft Lumen dropdown select component with squircle styling, spring animations,
-/// keyboard navigation, and accessible dismissal.
+/// full keyboard navigation, and accessible dismissal.
 class SofSelect<T> extends StatefulWidget {
   const SofSelect({
     super.key,
@@ -57,6 +58,8 @@ class SofSelect<T> extends StatefulWidget {
     this.disabled = false,
     this.prefix,
     this.borderRadius,
+    this.focusNode,
+    this.autofocus = false,
   });
 
   /// The list of selectable options.
@@ -89,6 +92,12 @@ class SofSelect<T> extends StatefulWidget {
   /// Custom corner radius for the select box and menu.
   final BorderRadius? borderRadius;
 
+  /// Optional external focus node.
+  final FocusNode? focusNode;
+
+  /// Whether this control should autofocus when mounted.
+  final bool autofocus;
+
   @override
   State<SofSelect<T>> createState() => _SofSelectState<T>();
 }
@@ -96,7 +105,7 @@ class SofSelect<T> extends StatefulWidget {
 class _SofSelectState<T> extends State<SofSelect<T>> {
   final GlobalKey _triggerKey = GlobalKey();
   final LayerLink _layerLink = LayerLink();
-  final FocusNode _focusNode = FocusNode();
+  late FocusNode _focusNode;
   OverlayEntry? _menuOverlay;
   bool _isOpen = false;
   bool _isHovered = false;
@@ -105,7 +114,30 @@ class _SofSelectState<T> extends State<SofSelect<T>> {
   @override
   void initState() {
     super.initState();
+    _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(SofSelect<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.focusNode != oldWidget.focusNode) {
+      if (oldWidget.focusNode == null) {
+        _focusNode.removeListener(_onFocusChange);
+        _focusNode.dispose();
+      } else {
+        oldWidget.focusNode!.removeListener(_onFocusChange);
+      }
+      _focusNode = widget.focusNode ?? FocusNode();
+      _focusNode.addListener(_onFocusChange);
+    }
+    if (widget.disabled && _isOpen) {
+      _closeMenu(restoreFocus: false);
+    } else if (_isOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _menuOverlay?.markNeedsBuild();
+      });
+    }
   }
 
   void _onFocusChange() {
@@ -115,7 +147,9 @@ class _SofSelectState<T> extends State<SofSelect<T>> {
   @override
   void dispose() {
     _focusNode.removeListener(_onFocusChange);
-    _focusNode.dispose();
+    if (widget.focusNode == null) {
+      _focusNode.dispose();
+    }
     if (_isOpen) {
       _menuOverlay?.remove();
       _menuOverlay = null;
@@ -142,7 +176,7 @@ class _SofSelectState<T> extends State<SofSelect<T>> {
   }
 
   void _openMenu() {
-    if (_isOpen || widget.disabled) return;
+    if (_isOpen || widget.disabled || widget.items.isEmpty) return;
     final overlay = Overlay.of(context);
     final renderBox = _triggerKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
@@ -153,23 +187,29 @@ class _SofSelectState<T> extends State<SofSelect<T>> {
     final screenSize = mediaQuery.size;
     final padding = mediaQuery.padding;
 
-    // Detect available space to dynamically flip upwards if near screen bottom
     final spaceBelow = screenSize.height - triggerRect.bottom - padding.bottom;
     final spaceAbove = triggerRect.top - padding.top;
     final flipUp = spaceBelow < 220 && spaceAbove > spaceBelow;
+    final availableSpace = math.max(120.0, (flipUp ? spaceAbove : spaceBelow) - 16.0);
+    final maxMenuHeight = math.min(280.0, availableSpace);
 
-    final currentIdx = widget.items.indexWhere((it) => it.value == widget.value);
-    _highlightedIndex = currentIdx >= 0 ? currentIdx : 0;
+    final currentIdx = widget.items.indexWhere((it) => it.value == widget.value && it.enabled);
+    if (currentIdx >= 0) {
+      _highlightedIndex = currentIdx;
+    } else {
+      _highlightedIndex = widget.items.indexWhere((it) => it.enabled);
+    }
 
     _menuOverlay = OverlayEntry(
       builder: (ctx) {
         return _SofSelectMenu<T>(
           layerLink: _layerLink,
           triggerWidth: triggerRect.width,
+          maxHeight: maxMenuHeight,
           flipUp: flipUp,
           items: widget.items,
           selectedValue: widget.value,
-          highlightedIndex: _highlightedIndex,
+          initialHighlightedIndex: _highlightedIndex,
           borderRadius: widget.borderRadius,
           theme: theme,
           onSelect: (item) {
@@ -187,14 +227,16 @@ class _SofSelectState<T> extends State<SofSelect<T>> {
     setState(() => _isOpen = true);
   }
 
-  void _closeMenu() {
+  void _closeMenu({bool restoreFocus = true}) {
     if (!_isOpen) return;
     _menuOverlay?.remove();
     _menuOverlay = null;
     _isOpen = false;
     if (mounted) {
       setState(() {});
-      _focusNode.requestFocus();
+      if (restoreFocus) {
+        _focusNode.requestFocus();
+      }
     }
   }
 
@@ -203,8 +245,9 @@ class _SofSelectState<T> extends State<SofSelect<T>> {
 
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.enter ||
-          event.logicalKey == LogicalKeyboardKey.space) {
-        _toggleMenu();
+          event.logicalKey == LogicalKeyboardKey.space ||
+          event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        _openMenu();
         return KeyEventResult.handled;
       } else if (event.logicalKey == LogicalKeyboardKey.escape && _isOpen) {
         _closeMenu();
@@ -241,125 +284,134 @@ class _SofSelectState<T> extends State<SofSelect<T>> {
     final horizontalPad = 14.0 * density.horizontalFactor;
     final selected = _selectedItem;
 
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: Focus(
-        focusNode: _focusNode,
-        onKeyEvent: _handleKeyEvent,
-      child: MouseRegion(
-        cursor: widget.disabled ? SystemMouseCursors.forbidden : SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (widget.label != null) ...[
-              Text(
-                widget.label!,
-                style: typography.caption.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colors.contentSecondary,
-                ),
-              ),
-              const SizedBox(height: 6),
-            ],
-            SofFocusRing(
-              focused: isFocused && !hasError,
-              borderRadius: effectiveRadius,
-              ringWidth: 2.0,
-              ringOffset: 1.5,
-              child: GestureDetector(
-                key: _triggerKey,
-                behavior: HitTestBehavior.opaque,
-                onTap: _toggleMenu,
-                child: AnimatedContainer(
-                  duration: theme.motion.getEffectiveDuration(theme.motion.durationInstant),
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPad, vertical: verticalPad),
-                  decoration: ShapeDecoration(
-                    color: widget.disabled
-                        ? colors.surfaceMuted.withValues(alpha: 0.5)
-                        : (colors.isDark ? colors.surfaceMuted : colors.surface),
-                    shape: SofSquircleBorder(
-                      borderRadius: effectiveRadius,
-                      side: BorderSide(
-                        color: borderColor,
-                        width: isFocused || hasError ? 1.5 : 1.0,
+    return Semantics(
+      button: true,
+      enabled: !widget.disabled,
+      expanded: _isOpen,
+      label: widget.label ?? selected?.label ?? widget.placeholder,
+      child: CompositedTransformTarget(
+        link: _layerLink,
+        child: Focus(
+          focusNode: _focusNode,
+          autofocus: widget.autofocus,
+          canRequestFocus: !widget.disabled,
+          onKeyEvent: _handleKeyEvent,
+          child: MouseRegion(
+            cursor: widget.disabled ? SystemMouseCursors.forbidden : SystemMouseCursors.click,
+            onEnter: (_) => setState(() => _isHovered = true),
+            onExit: (_) => setState(() => _isHovered = false),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.label != null) ...[
+                  Text(
+                    widget.label!,
+                    style: typography.caption.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colors.contentSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                ],
+                SofFocusRing(
+                  focused: isFocused && !hasError && !widget.disabled,
+                  borderRadius: effectiveRadius,
+                  ringWidth: 2.0,
+                  ringOffset: 1.5,
+                  child: GestureDetector(
+                    key: _triggerKey,
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _toggleMenu,
+                    child: AnimatedContainer(
+                      duration: theme.motion.getEffectiveDuration(theme.motion.durationInstant),
+                      padding: EdgeInsets.symmetric(horizontal: horizontalPad, vertical: verticalPad),
+                      decoration: ShapeDecoration(
+                        color: widget.disabled
+                            ? colors.surfaceMuted.withValues(alpha: 0.5)
+                            : (colors.isDark ? colors.surfaceMuted : colors.surface),
+                        shape: SofSquircleBorder(
+                          borderRadius: effectiveRadius,
+                          side: BorderSide(
+                            color: borderColor,
+                            width: isFocused || hasError ? 1.5 : 1.0,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          if (widget.prefix != null) ...[
+                            widget.prefix!,
+                            const SizedBox(width: 8),
+                          ],
+                          if (selected?.icon != null) ...[
+                            selected!.icon!,
+                            const SizedBox(width: 8),
+                          ],
+                          Expanded(
+                            child: Text(
+                              selected?.label ?? widget.placeholder,
+                              style: typography.body.copyWith(
+                                color: selected != null
+                                    ? (widget.disabled ? colors.contentTertiary : colors.contentPrimary)
+                                    : colors.contentTertiary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          AnimatedRotation(
+                            duration: theme.motion.getEffectiveDuration(theme.motion.durationQuick),
+                            turns: _isOpen ? 0.5 : 0.0,
+                            curve: theme.motion.getEffectiveCurve(theme.motion.springGentle),
+                            child: SofIcon(
+                              SofIcons.chevronDown,
+                              size: 16,
+                              color: colors.contentSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      if (widget.prefix != null) ...[
-                        widget.prefix!,
-                        const SizedBox(width: 8),
-                      ],
-                      if (selected?.icon != null) ...[
-                        selected!.icon!,
-                        const SizedBox(width: 8),
-                      ],
-                      Expanded(
-                        child: Text(
-                          selected?.label ?? widget.placeholder,
-                          style: typography.body.copyWith(
-                            color: selected != null
-                                ? (widget.disabled ? colors.contentTertiary : colors.contentPrimary)
-                                : colors.contentTertiary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      AnimatedRotation(
-                        duration: theme.motion.getEffectiveDuration(theme.motion.durationQuick),
-                        turns: _isOpen ? 0.5 : 0.0,
-                        curve: theme.motion.springGentle,
-                        child: SofIcon(
-                          SofIcons.chevronDown,
-                          size: 16,
-                          color: colors.contentSecondary,
-                        ),
-                      ),
-                    ],
+                ),
+                if (hasError) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.errorText!,
+                    style: typography.caption.copyWith(
+                      color: colors.danger,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ),
+                ] else if (widget.helperText != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.helperText!,
+                    style: typography.caption.copyWith(
+                      color: colors.contentTertiary,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            if (hasError) ...[
-              const SizedBox(height: 4),
-              Text(
-                widget.errorText!,
-                style: typography.caption.copyWith(
-                  color: colors.danger,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ] else if (widget.helperText != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                widget.helperText!,
-                style: typography.caption.copyWith(
-                  color: colors.contentTertiary,
-                ),
-              ),
-            ],
-          ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class _SofSelectMenu<T> extends StatefulWidget {
   const _SofSelectMenu({
     required this.layerLink,
     required this.triggerWidth,
+    required this.maxHeight,
     required this.flipUp,
     required this.items,
     required this.selectedValue,
-    required this.highlightedIndex,
+    required this.initialHighlightedIndex,
     required this.borderRadius,
     required this.theme,
     required this.onSelect,
@@ -368,10 +420,11 @@ class _SofSelectMenu<T> extends StatefulWidget {
 
   final LayerLink layerLink;
   final double triggerWidth;
+  final double maxHeight;
   final bool flipUp;
   final List<SofSelectItem<T>> items;
   final T? selectedValue;
-  final int highlightedIndex;
+  final int initialHighlightedIndex;
   final BorderRadius? borderRadius;
   final SoflumeThemeData theme;
   final ValueChanged<SofSelectItem<T>> onSelect;
@@ -387,7 +440,7 @@ class _SofSelectMenuState<T> extends State<_SofSelectMenu<T>>
   late final AnimationController _animController;
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _fadeAnimation;
-  late int _hoveredIndex;
+  late int _highlightedIndex;
 
   @override
   void initState() {
@@ -398,14 +451,17 @@ class _SofSelectMenuState<T> extends State<_SofSelectMenu<T>>
         _focusNode.requestFocus();
       }
     });
-    _hoveredIndex = widget.highlightedIndex;
+    _highlightedIndex = widget.initialHighlightedIndex;
     _animController = AnimationController(
       vsync: this,
       duration: widget.theme.motion.getEffectiveDuration(widget.theme.motion.durationQuick),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: widget.theme.motion.springGentle),
+      CurvedAnimation(
+        parent: _animController,
+        curve: widget.theme.motion.getEffectiveCurve(widget.theme.motion.springGentle),
+      ),
     );
     _fadeAnimation = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
 
@@ -419,8 +475,61 @@ class _SofSelectMenuState<T> extends State<_SofSelectMenu<T>>
     super.dispose();
   }
 
-  void _dismiss() {
-    widget.onClose();
+  void _moveHighlight(int step) {
+    if (widget.items.isEmpty) return;
+    final count = widget.items.length;
+    int idx = _highlightedIndex;
+    for (int i = 0; i < count; i++) {
+      idx = (idx + step + count) % count;
+      if (widget.items[idx].enabled) {
+        setState(() => _highlightedIndex = idx);
+        return;
+      }
+    }
+  }
+
+  void _jumpToBoundary({required bool first}) {
+    if (widget.items.isEmpty) return;
+    if (first) {
+      final idx = widget.items.indexWhere((it) => it.enabled);
+      if (idx >= 0) setState(() => _highlightedIndex = idx);
+    } else {
+      final idx = widget.items.lastIndexWhere((it) => it.enabled);
+      if (idx >= 0) setState(() => _highlightedIndex = idx);
+    }
+  }
+
+  KeyEventResult _handleMenuKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.escape) {
+      widget.onClose();
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.arrowDown) {
+      _moveHighlight(1);
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.arrowUp) {
+      _moveHighlight(-1);
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.home) {
+      _jumpToBoundary(first: true);
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.end) {
+      _jumpToBoundary(first: false);
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space) {
+      if (_highlightedIndex >= 0 && _highlightedIndex < widget.items.length) {
+        final item = widget.items[_highlightedIndex];
+        if (item.enabled) {
+          widget.onSelect(item);
+        }
+      }
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -434,20 +543,14 @@ class _SofSelectMenuState<T> extends State<_SofSelectMenu<T>>
     return Focus(
       focusNode: _focusNode,
       autofocus: true,
-      onKeyEvent: (node, event) {
-        if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
-          _dismiss();
-          return KeyEventResult.handled;
-        }
-        return KeyEventResult.ignored;
-      },
+      onKeyEvent: _handleMenuKeyEvent,
       child: Stack(
         children: [
           // Tap outside barrier
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
-              onTap: _dismiss,
+              onTap: widget.onClose,
               child: const ColoredBox(color: Color(0x00000000)),
             ),
           ),
@@ -476,7 +579,7 @@ class _SofSelectMenuState<T> extends State<_SofSelectMenu<T>>
                           borderRadius: effectiveRadius,
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 280),
+                            constraints: BoxConstraints(maxHeight: widget.maxHeight),
                             child: SingleChildScrollView(
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
@@ -509,64 +612,70 @@ class _SofSelectMenuState<T> extends State<_SofSelectMenu<T>>
     SoflumeTypography typography,
   ) {
     final isSelected = item.value == widget.selectedValue;
-    final isHovered = index == _hoveredIndex;
+    final isHighlighted = index == _highlightedIndex;
 
     Color bgColor;
     if (isSelected) {
       bgColor = colors.accentSubtle;
-    } else if (isHovered && item.enabled) {
+    } else if (isHighlighted && item.enabled) {
       bgColor = colors.isDark ? colors.surfaceRaised : colors.surfaceMuted;
     } else {
       bgColor = const Color(0x00000000);
     }
 
-    return MouseRegion(
-      cursor: item.enabled ? SystemMouseCursors.click : SystemMouseCursors.forbidden,
-      onEnter: (_) {
-        if (item.enabled) setState(() => _hoveredIndex = index);
-      },
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          if (item.enabled) {
-            widget.onSelect(item);
-          }
+    return Semantics(
+      selected: isSelected,
+      enabled: item.enabled,
+      button: true,
+      label: item.label,
+      child: MouseRegion(
+        cursor: item.enabled ? SystemMouseCursors.click : SystemMouseCursors.forbidden,
+        onEnter: (_) {
+          if (item.enabled) setState(() => _highlightedIndex = index);
         },
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: ShapeDecoration(
-            color: bgColor,
-            shape: SofSquircleBorder(
-              borderRadius: radii.brSm,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (item.enabled) {
+              widget.onSelect(item);
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: ShapeDecoration(
+              color: bgColor,
+              shape: SofSquircleBorder(
+                borderRadius: radii.brSm,
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              if (item.icon != null) ...[
-                item.icon!,
-                const SizedBox(width: 8),
-              ],
-              Expanded(
-                child: Text(
-                  item.label,
-                  style: typography.body.copyWith(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: item.enabled
-                        ? (isSelected ? colors.accent : colors.contentPrimary)
-                        : colors.contentTertiary,
+            child: Row(
+              children: [
+                if (item.icon != null) ...[
+                  item.icon!,
+                  const SizedBox(width: 8),
+                ],
+                Expanded(
+                  child: Text(
+                    item.label,
+                    style: typography.body.copyWith(
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      color: item.enabled
+                          ? (isSelected ? colors.onAccentSubtle : colors.contentPrimary)
+                          : colors.contentTertiary,
+                    ),
                   ),
                 ),
-              ),
-              if (isSelected) ...[
-                const SizedBox(width: 8),
-                SofIcon(
-                  SofIcons.check,
-                  size: 16,
-                  color: colors.accent,
-                ),
+                if (isSelected) ...[
+                  const SizedBox(width: 8),
+                  SofIcon(
+                    SofIcons.check,
+                    size: 16,
+                    color: colors.onAccentSubtle,
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

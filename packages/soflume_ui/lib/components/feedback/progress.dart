@@ -17,6 +17,7 @@ class SofProgress extends StatefulWidget {
     this.size = 36.0,
     this.trackHeight = 6.0,
     this.color,
+    this.semanticLabel,
   });
 
   /// The progress value between 0.0 and 1.0. If null, the indicator is indeterminate.
@@ -26,6 +27,7 @@ class SofProgress extends StatefulWidget {
   final double size;
   final double trackHeight;
   final Color? color;
+  final String? semanticLabel;
 
   @override
   State<SofProgress> createState() => _SofProgressState();
@@ -41,18 +43,33 @@ class _SofProgressState extends State<SofProgress> with SingleTickerProviderStat
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-    if (widget.value == null) {
-      _controller.repeat();
-    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncAnimation();
   }
 
   @override
   void didUpdateWidget(SofProgress oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.value == null && !_controller.isAnimating) {
-      _controller.repeat();
-    } else if (widget.value != null && _controller.isAnimating) {
-      _controller.stop();
+    _syncAnimation();
+  }
+
+  void _syncAnimation() {
+    final reduceMotion = SoflumeTheme.of(context).motion.reduceMotion;
+    if (widget.value == null && !reduceMotion) {
+      if (!_controller.isAnimating) {
+        _controller.repeat();
+      }
+    } else {
+      if (_controller.isAnimating) {
+        _controller.stop();
+      }
+      if (widget.value == null) {
+        _controller.value = 0.35;
+      }
     }
   }
 
@@ -67,53 +84,22 @@ class _SofProgressState extends State<SofProgress> with SingleTickerProviderStat
     final theme = SoflumeTheme.of(context);
     final colors = theme.colors;
     final activeColor = widget.color ?? colors.accent;
-    final trackColor = colors.isDark ? colors.surfaceMuted : colors.surfaceMuted;
+    final trackColor = colors.surfaceMuted;
+
+    final String? semanticValue = widget.value != null
+        ? '${(widget.value!.clamp(0.0, 1.0) * 100).round()}%'
+        : null;
 
     if (widget.shape == SofProgressShape.linear) {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
+      return Semantics(
+        label: widget.semanticLabel,
+        value: semanticValue,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth.isFinite ? constraints.maxWidth : 200.0;
 
-          if (widget.value != null) {
-            final progress = widget.value!.clamp(0.0, 1.0);
-            return Container(
-              height: widget.trackHeight,
-              width: width,
-              decoration: BoxDecoration(
-                color: trackColor,
-                borderRadius: BorderRadius.circular(widget.trackHeight / 2),
-              ),
-              alignment: Alignment.centerLeft,
-              child: AnimatedContainer(
-                duration: theme.motion.getEffectiveDuration(theme.motion.durationQuick),
-                width: width * progress,
-                height: widget.trackHeight,
-                decoration: BoxDecoration(
-                  color: activeColor,
-                  borderRadius: BorderRadius.circular(widget.trackHeight / 2),
-                  boxShadow: widget.luminous
-                      ? [
-                          BoxShadow(
-                            color: activeColor.withValues(alpha: 0.5),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                          ),
-                        ]
-                      : null,
-                ),
-              ),
-            );
-          }
-
-          // Indeterminate linear
-          return AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) {
-              final t = _controller.value;
-              final start = (t * 1.5 - 0.5).clamp(0.0, 1.0);
-              final end = (t * 1.5).clamp(0.0, 1.0);
-              final segWidth = width * (end - start);
-
+            if (widget.value != null) {
+              final progress = widget.value!.clamp(0.0, 1.0);
               return Container(
                 height: widget.trackHeight,
                 width: width,
@@ -121,46 +107,88 @@ class _SofProgressState extends State<SofProgress> with SingleTickerProviderStat
                   color: trackColor,
                   borderRadius: BorderRadius.circular(widget.trackHeight / 2),
                 ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: width * start,
-                      width: segWidth,
-                      height: widget.trackHeight,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: activeColor,
-                          borderRadius: BorderRadius.circular(widget.trackHeight / 2),
-                        ),
-                      ),
-                    ),
-                  ],
+                alignment: Alignment.centerLeft,
+                child: AnimatedContainer(
+                  duration: theme.motion.getEffectiveDuration(theme.motion.durationQuick),
+                  width: width * progress,
+                  height: widget.trackHeight,
+                  decoration: BoxDecoration(
+                    color: activeColor,
+                    borderRadius: BorderRadius.circular(widget.trackHeight / 2),
+                    boxShadow: widget.luminous
+                        ? [
+                            BoxShadow(
+                              color: activeColor.withValues(alpha: 0.5),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : null,
+                  ),
                 ),
               );
-            },
-          );
-        },
+            }
+
+            // Indeterminate linear
+            return AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final t = _controller.value;
+                final start = (t * 1.5 - 0.5).clamp(0.0, 1.0);
+                final end = (t * 1.5).clamp(0.0, 1.0);
+                final segWidth = width * (end - start);
+
+                return Container(
+                  height: widget.trackHeight,
+                  width: width,
+                  decoration: BoxDecoration(
+                    color: trackColor,
+                    borderRadius: BorderRadius.circular(widget.trackHeight / 2),
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        left: width * start,
+                        width: segWidth,
+                        height: widget.trackHeight,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: activeColor,
+                            borderRadius: BorderRadius.circular(widget.trackHeight / 2),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
       );
     }
 
     // Circular progress
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          return CustomPaint(
-            painter: _CircularProgressPainter(
-              value: widget.value,
-              rotation: _controller.value,
-              color: activeColor,
-              trackColor: trackColor,
-              strokeWidth: widget.trackHeight,
-              luminous: widget.luminous,
-            ),
-          );
-        },
+    return Semantics(
+      label: widget.semanticLabel,
+      value: semanticValue,
+      child: SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            return CustomPaint(
+              painter: _CircularProgressPainter(
+                value: widget.value,
+                rotation: _controller.value,
+                color: activeColor,
+                trackColor: trackColor,
+                strokeWidth: widget.trackHeight,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -173,7 +201,6 @@ class _CircularProgressPainter extends CustomPainter {
     required this.color,
     required this.trackColor,
     required this.strokeWidth,
-    required this.luminous,
   });
 
   final double? value;
@@ -181,14 +208,12 @@ class _CircularProgressPainter extends CustomPainter {
   final Color color;
   final Color trackColor;
   final double strokeWidth;
-  final bool luminous;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
-    // Track
     final trackPaint = Paint()
       ..color = trackColor
       ..style = PaintingStyle.stroke
@@ -197,7 +222,6 @@ class _CircularProgressPainter extends CustomPainter {
 
     final rect = Rect.fromCircle(center: center, radius: radius);
 
-    // Active
     final activePaint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
@@ -214,5 +238,10 @@ class _CircularProgressPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CircularProgressPainter oldDelegate) => true;
+  bool shouldRepaint(_CircularProgressPainter oldDelegate) =>
+      oldDelegate.value != value ||
+      oldDelegate.rotation != rotation ||
+      oldDelegate.color != color ||
+      oldDelegate.trackColor != trackColor ||
+      oldDelegate.strokeWidth != strokeWidth;
 }

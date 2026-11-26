@@ -1,6 +1,18 @@
 import 'package:flutter/widgets.dart';
 import 'theme.dart';
 
+/// Theme mode selection for [SoflumeApp].
+enum SofThemeMode {
+  /// Follow the operating system brightness setting.
+  system,
+
+  /// Always use the light [SoflumeApp.theme].
+  light,
+
+  /// Always use [SoflumeApp.darkTheme] (or [SoflumeThemeData.dark]).
+  dark,
+}
+
 /// The top-level application widget for apps using Soflume UI.
 ///
 /// Automatically equips your Flutter app with:
@@ -24,6 +36,8 @@ class SoflumeApp extends StatelessWidget {
     this.title = '',
     this.onGenerateTitle,
     this.theme,
+    this.darkTheme,
+    this.themeMode = SofThemeMode.light,
     this.textDirection = TextDirection.ltr,
     this.locale,
     this.localizationsDelegates,
@@ -52,6 +66,8 @@ class SoflumeApp extends StatelessWidget {
     this.title = '',
     this.onGenerateTitle,
     this.theme,
+    this.darkTheme,
+    this.themeMode = SofThemeMode.light,
     this.textDirection = TextDirection.ltr,
     this.locale,
     this.localizationsDelegates,
@@ -85,6 +101,8 @@ class SoflumeApp extends StatelessWidget {
   final String title;
   final GenerateAppTitle? onGenerateTitle;
   final SoflumeThemeData? theme;
+  final SoflumeThemeData? darkTheme;
+  final SofThemeMode themeMode;
   final TextDirection textDirection;
   final Locale? locale;
   final Iterable<LocalizationsDelegate<dynamic>>? localizationsDelegates;
@@ -103,11 +121,36 @@ class SoflumeApp extends StatelessWidget {
   final RouterDelegate<Object>? routerDelegate;
   final BackButtonDispatcher? backButtonDispatcher;
 
+  SoflumeThemeData _resolveTheme(BuildContext context) {
+    final bool useDark;
+    switch (themeMode) {
+      case SofThemeMode.system:
+        useDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+        break;
+      case SofThemeMode.dark:
+        useDark = true;
+        break;
+      case SofThemeMode.light:
+        useDark = false;
+        break;
+    }
+
+    var resolved = useDark
+        ? (darkTheme ?? theme ?? SoflumeThemeData.dark())
+        : (theme ?? SoflumeThemeData.light());
+
+    if (MediaQuery.disableAnimationsOf(context) && !resolved.motion.reduceMotion) {
+      resolved = resolved.copyWith(motion: SoflumeMotion.reduced);
+    }
+    return resolved;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final effectiveTheme = theme ?? SoflumeThemeData.light();
+    final fallbackTheme = theme ?? SoflumeThemeData.light();
 
     Widget appBuilder(BuildContext ctx, Widget? child) {
+      final effectiveTheme = _resolveTheme(ctx);
       final content = SoflumeTheme(
         data: effectiveTheme,
         child: Directionality(
@@ -132,10 +175,10 @@ class SoflumeApp extends StatelessWidget {
         builder: appBuilder,
         title: title,
         onGenerateTitle: onGenerateTitle,
-        textStyle: effectiveTheme.typography.body.copyWith(
-          color: effectiveTheme.colors.contentPrimary,
+        textStyle: fallbackTheme.typography.body.copyWith(
+          color: fallbackTheme.colors.contentPrimary,
         ),
-        color: effectiveTheme.colors.accent,
+        color: fallbackTheme.colors.accent,
         locale: locale,
         localizationsDelegates: localizationsDelegates,
         localeListResolutionCallback: localeListResolutionCallback,
@@ -171,10 +214,10 @@ class SoflumeApp extends StatelessWidget {
       builder: appBuilder,
       title: title,
       onGenerateTitle: onGenerateTitle,
-      textStyle: effectiveTheme.typography.body.copyWith(
-        color: effectiveTheme.colors.contentPrimary,
+      textStyle: fallbackTheme.typography.body.copyWith(
+        color: fallbackTheme.colors.contentPrimary,
       ),
-      color: effectiveTheme.colors.accent,
+      color: fallbackTheme.colors.accent,
       locale: locale,
       localizationsDelegates: localizationsDelegates,
       localeListResolutionCallback: localeListResolutionCallback,

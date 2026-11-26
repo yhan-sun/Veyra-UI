@@ -28,7 +28,20 @@ class _SofSkeletonState extends State<SofSkeleton> with SingleTickerProviderStat
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
-    )..repeat();
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = SoflumeTheme.of(context).motion.reduceMotion;
+    if (reduceMotion) {
+      if (_controller.isAnimating) {
+        _controller.stop();
+      }
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
   }
 
   @override
@@ -44,42 +57,51 @@ class _SofSkeletonState extends State<SofSkeleton> with SingleTickerProviderStat
     final radii = theme.radii;
 
     final effectiveRadius = widget.borderRadius ?? radii.brMd;
+    final baseColor = colors.surfaceMuted;
+    final highlightColor = colors.isDark
+        ? Color.lerp(colors.surfaceMuted, const Color(0xFFFFFFFF), 0.12)!
+        : Color.lerp(colors.surfaceMuted, const Color(0xFFFFFFFF), 0.72)!;
 
-    final baseColor = colors.isDark ? const Color(0xFF232735) : const Color(0xFFE8ECF4);
-    final highlightColor = colors.isDark ? const Color(0xFF2C3244) : const Color(0xFFF6F8FC);
+    final shape = SofSquircleBorder(borderRadius: effectiveRadius);
 
     if (theme.motion.reduceMotion) {
-      return Container(
+      return SizedBox(
         width: widget.width,
         height: widget.height,
-        decoration: ShapeDecoration(
-          color: baseColor,
-          shape: SofSquircleBorder(borderRadius: effectiveRadius),
+        child: DecoratedBox(
+          decoration: ShapeDecoration(
+            color: baseColor,
+            shape: shape,
+          ),
         ),
       );
     }
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final t = _controller.value;
-        return Container(
-          width: widget.width,
-          height: widget.height,
-          decoration: ShapeDecoration(
-            gradient: LinearGradient(
-              begin: Alignment(-1.5 + (t * 3.0), -0.2),
-              end: Alignment(-0.5 + (t * 3.0), 0.2),
-              colors: [
-                baseColor,
-                highlightColor,
-                baseColor,
-              ],
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final t = _controller.value;
+          return SizedBox(
+            width: widget.width,
+            height: widget.height,
+            child: DecoratedBox(
+              decoration: ShapeDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment(-1.5 + (t * 3.0), -0.2),
+                  end: Alignment(-0.5 + (t * 3.0), 0.2),
+                  colors: [
+                    baseColor,
+                    highlightColor,
+                    baseColor,
+                  ],
+                ),
+                shape: shape,
+              ),
             ),
-            shape: SofSquircleBorder(borderRadius: effectiveRadius),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

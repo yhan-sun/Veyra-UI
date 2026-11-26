@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'theme_data.dart';
+import 'material_adapter.dart';
 import '../tokens/colors.dart';
 import '../tokens/radii.dart';
 import '../tokens/spacing.dart';
@@ -25,10 +26,17 @@ class SoflumeTheme extends InheritedTheme {
 
   final SoflumeThemeData data;
 
+  /// Retrieves the nearest [SoflumeThemeData] from [SoflumeTheme] or [SoflumeThemeExtension],
+  /// returning null if neither is present.
+  static SoflumeThemeData? maybeOf(BuildContext context) {
+    final theme = context.dependOnInheritedWidgetOfExactType<SoflumeTheme>();
+    if (theme != null) return theme.data;
+    return SoflumeThemeExtension.maybeOf(context);
+  }
+
   /// Retrieves the nearest [SoflumeThemeData], or falls back to a default light theme.
   static SoflumeThemeData of(BuildContext context) {
-    final theme = context.dependOnInheritedWidgetOfExactType<SoflumeTheme>();
-    return theme?.data ?? SoflumeThemeData.light();
+    return maybeOf(context) ?? SoflumeThemeData.light();
   }
 
   /// Convenience accessor for colors.

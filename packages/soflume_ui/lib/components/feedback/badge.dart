@@ -34,7 +34,7 @@ class SofBadge extends StatelessWidget {
     final typography = theme.typography;
 
     Color badgeColor;
-    Color textColor = const Color(0xFFFFFFFF);
+    Color textColor;
 
     switch (variant) {
       case SofBadgeVariant.accent:
@@ -43,15 +43,19 @@ class SofBadge extends StatelessWidget {
         break;
       case SofBadgeVariant.success:
         badgeColor = colors.success;
+        textColor = colors.onSuccess;
         break;
       case SofBadgeVariant.warning:
         badgeColor = colors.warning;
+        textColor = colors.onWarning;
         break;
       case SofBadgeVariant.danger:
         badgeColor = colors.danger;
+        textColor = colors.onDanger;
         break;
       case SofBadgeVariant.neutral:
         badgeColor = colors.contentSecondary;
+        textColor = SoflumeColors.computeContrastColor(colors.contentSecondary);
         break;
     }
 

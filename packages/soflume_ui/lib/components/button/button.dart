@@ -3,6 +3,8 @@ import '../../foundation/theme/theme.dart';
 import '../../foundation/shapes/squircle_border.dart';
 import '../../primitives/pressable.dart';
 import '../../primitives/focus_ring.dart';
+import '../../src/button_style.dart';
+import '../../src/spinner.dart';
 
 /// Visual style variant for [SofButton].
 enum SofButtonVariant {
@@ -100,55 +102,20 @@ class SofButton extends StatelessWidget {
     return SofPressable(
       onPressed: isInteractive ? onPressed : null,
       enabled: isInteractive,
+      dimWhenDisabled: !loading,
       focusNode: focusNode,
       autofocus: autofocus,
       semanticLabel: semanticLabel,
       pressScale: 0.97,
       builder: (context, state) {
-        Color bgColor;
-        Color textColor;
-        BorderSide borderSide = BorderSide.none;
-
-        switch (variant) {
-          case SofButtonVariant.filled:
-            bgColor = state.isHovered
-                ? Color.lerp(colors.accent, colors.contentPrimary, 0.08)!
-                : colors.accent;
-            textColor = colors.onAccent;
-            break;
-
-          case SofButtonVariant.subtle:
-            bgColor = state.isHovered
-                ? colors.accent.withValues(alpha: 0.22)
-                : colors.accentSubtle;
-            textColor = colors.accent;
-            break;
-
-          case SofButtonVariant.outlined:
-            bgColor = state.isHovered
-                ? colors.surfaceMuted
-                : const Color(0x00000000);
-            textColor = colors.contentPrimary;
-            borderSide = BorderSide(
-              color: state.isHovered ? colors.accent : colors.outlineSubtle,
-              width: 1.2,
-            );
-            break;
-
-          case SofButtonVariant.ghost:
-            bgColor = state.isHovered
-                ? colors.surfaceMuted
-                : const Color(0x00000000);
-            textColor = colors.contentPrimary;
-            break;
-
-          case SofButtonVariant.danger:
-            bgColor = state.isHovered
-                ? Color.lerp(colors.danger, const Color(0xFF000000), 0.12)!
-                : colors.danger;
-            textColor = const Color(0xFFFFFFFF);
-            break;
-        }
+        final palette = SofButtonPalette.resolve(
+          variant: variant,
+          colors: colors,
+          isHovered: state.isHovered,
+        );
+        final bgColor = palette.background;
+        final textColor = palette.foreground;
+        final borderSide = palette.borderSide;
 
         final textStyle = (size == SofButtonSize.small
                 ? typography.label
@@ -157,10 +124,9 @@ class SofButton extends StatelessWidget {
 
         Widget buttonContent;
         if (loading) {
-          buttonContent = SizedBox(
-            width: size.iconSize,
-            height: size.iconSize,
-            child: _SofButtonSpinner(color: textColor),
+          buttonContent = SofSpinner(
+            color: textColor,
+            size: size.iconSize,
           );
         } else {
           final items = <Widget>[];
@@ -172,9 +138,13 @@ class SofButton extends StatelessWidget {
             items.add(const SizedBox(width: 8));
           }
 
-          items.add(DefaultTextStyle.merge(
-            style: textStyle,
-            child: child,
+          items.add(Flexible(
+            child: DefaultTextStyle.merge(
+              style: textStyle,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              child: child,
+            ),
           ));
 
           if (trailing != null) {
@@ -222,6 +192,7 @@ class SofButton extends StatelessWidget {
                       ]
                     : null,
           ),
+          alignment: Alignment.center,
           child: buttonContent,
         );
 
@@ -235,80 +206,4 @@ class SofButton extends StatelessWidget {
       },
     );
   }
-}
-
-class _SofButtonSpinner extends StatefulWidget {
-  const _SofButtonSpinner({required this.color});
-
-  final Color color;
-
-  @override
-  State<_SofButtonSpinner> createState() => _SofButtonSpinnerState();
-}
-
-class _SofButtonSpinnerState extends State<_SofButtonSpinner>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return RotationTransition(
-      turns: _controller,
-      child: CustomPaint(
-        painter: _SpinnerPainter(widget.color),
-      ),
-    );
-  }
-}
-
-class _SpinnerPainter extends CustomPainter {
-  _SpinnerPainter(this.color);
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokeWidth = size.width * 0.15;
-    final paint = Paint()
-      ..color = color.withValues(alpha: 0.25)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    canvas.drawCircle(center, radius, paint);
-
-    final activePaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -1.57,
-      2.5,
-      false,
-      activePaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_SpinnerPainter oldDelegate) => oldDelegate.color != color;
 }

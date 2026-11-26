@@ -30,12 +30,10 @@ class SofIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final iconTheme = IconTheme.of(context);
-    final soflumeTheme = SoflumeTheme.of(context);
-
     final effectiveSize = size ?? iconTheme.size ?? 20.0;
     final effectiveColor = color ??
         iconTheme.color ??
-        soflumeTheme.colors.contentPrimary;
+        SoflumeTheme.colorsOf(context).contentPrimary;
 
     return Semantics(
       label: semanticsLabel,

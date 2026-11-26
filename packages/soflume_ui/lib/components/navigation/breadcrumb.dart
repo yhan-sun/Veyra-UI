@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import '../../foundation/theme/theme.dart';
+import '../../primitives/focus_ring.dart';
 
 /// Item for breadcrumb trail navigation.
 class SofBreadcrumbItem {
@@ -30,6 +31,7 @@ class SofBreadcrumb extends StatelessWidget {
     final theme = SoflumeTheme.of(context);
     final colors = theme.colors;
     final typography = theme.typography;
+    final radii = theme.radii;
 
     final children = <Widget>[];
 
@@ -62,12 +64,11 @@ class SofBreadcrumb extends StatelessWidget {
 
       if (!isLast && item.onTap != null) {
         children.add(
-          MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: item.onTap,
-              child: content,
-            ),
+          _BreadcrumbLink(
+            label: item.label,
+            borderRadius: radii.brXs,
+            onTap: item.onTap!,
+            child: content,
           ),
         );
       } else {
@@ -78,10 +79,12 @@ class SofBreadcrumb extends StatelessWidget {
         children.add(
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(
-              separator,
-              style: typography.caption.copyWith(
-                color: colors.contentSecondary.withValues(alpha: 0.5),
+            child: ExcludeSemantics(
+              child: Text(
+                separator,
+                style: typography.caption.copyWith(
+                  color: colors.contentSecondary.withValues(alpha: 0.5),
+                ),
               ),
             ),
           ),
@@ -94,6 +97,58 @@ class SofBreadcrumb extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: children,
+      ),
+    );
+  }
+}
+
+class _BreadcrumbLink extends StatefulWidget {
+  const _BreadcrumbLink({
+    required this.label,
+    required this.borderRadius,
+    required this.onTap,
+    required this.child,
+  });
+
+  final String label;
+  final BorderRadius borderRadius;
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  State<_BreadcrumbLink> createState() => _BreadcrumbLinkState();
+}
+
+class _BreadcrumbLinkState extends State<_BreadcrumbLink> {
+  bool _isFocused = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      link: true,
+      label: widget.label,
+      child: FocusableActionDetector(
+        mouseCursor: SystemMouseCursors.click,
+        onShowFocusHighlight: (focused) {
+          if (mounted) setState(() => _isFocused = focused);
+        },
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              widget.onTap();
+              return null;
+            },
+          ),
+        },
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          child: SofFocusRing(
+            focused: _isFocused,
+            borderRadius: widget.borderRadius,
+            child: widget.child,
+          ),
+        ),
       ),
     );
   }

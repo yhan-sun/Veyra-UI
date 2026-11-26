@@ -37,12 +37,14 @@ jobs:
           cd ../../example && flutter pub get
 
       - name: Run Static Analysis
-        run: flutter analyze
+        run: |
+          cd packages/soflume_ui && flutter analyze
+          cd ../../example && flutter analyze
 
       - name: Run Core Library Tests
         run: |
           cd packages/soflume_ui
-          flutter test
+          flutter test --coverage
 
       - name: Run Example Showcase Tests
         run: |

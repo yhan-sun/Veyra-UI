@@ -34,6 +34,7 @@ class SofPressable extends StatefulWidget {
     this.builder,
     this.child,
     this.enabled = true,
+    this.dimWhenDisabled = true,
     this.pressScale = 0.975,
     this.enableHaptic = true,
     this.focusNode,
@@ -46,6 +47,10 @@ class SofPressable extends StatefulWidget {
   final SofPressableBuilder? builder;
   final Widget? child;
   final bool enabled;
+
+  /// Whether to apply disabled opacity when [enabled] is false or [onPressed] is null.
+  final bool dimWhenDisabled;
+
   final double pressScale;
   final bool enableHaptic;
   final FocusNode? focusNode;
@@ -58,33 +63,45 @@ class SofPressable extends StatefulWidget {
 
 class _SofPressableState extends State<SofPressable> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _scaleAnimation;
+  late CurvedAnimation _curvedAnimation;
+  late Animation<double> _scaleAnimation;
   late FocusNode _focusNode;
 
   bool _isHovered = false;
   bool _isPressed = false;
   bool _isFocused = false;
 
+  bool get _isInteractive => widget.enabled && widget.onPressed != null;
+
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 140),
+      duration: const Duration(milliseconds: 120),
+    );
+    _curvedAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const SofSpringCurve.snappy(),
+      reverseCurve: const SofSpringCurve.settle(),
     );
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: widget.pressScale,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const SofSpringCurve.snappy(),
-        reverseCurve: const SofSpringCurve.settle(),
-      ),
-    );
+    ).animate(_curvedAnimation);
 
     _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.addListener(_handleFocusChange);
+    _isFocused = _focusNode.hasFocus;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final motion = SoflumeTheme.of(context).motion;
+    _controller.duration = motion.getEffectiveDuration(motion.durationInstant);
+    _curvedAnimation.curve = motion.getEffectiveCurve(motion.springSnappy);
+    _curvedAnimation.reverseCurve = motion.getEffectiveCurve(motion.springSettle);
   }
 
   @override
@@ -94,27 +111,41 @@ class _SofPressableState extends State<SofPressable> with SingleTickerProviderSt
       _scaleAnimation = Tween<double>(
         begin: 1.0,
         end: widget.pressScale,
-      ).animate(
-        CurvedAnimation(
-          parent: _controller,
-          curve: const SofSpringCurve.snappy(),
-          reverseCurve: const SofSpringCurve.settle(),
-        ),
-      );
+      ).animate(_curvedAnimation);
+    }
+    if (widget.focusNode != oldWidget.focusNode) {
+      oldWidget.focusNode?.removeListener(_handleFocusChange);
+      if (oldWidget.focusNode == null) {
+        _focusNode.removeListener(_handleFocusChange);
+        _focusNode.dispose();
+      }
+      _focusNode = widget.focusNode ?? FocusNode();
+      _focusNode.addListener(_handleFocusChange);
+      _isFocused = _focusNode.hasFocus;
+    }
+    if (!_isInteractive && _isPressed) {
+      _isPressed = false;
+      _controller.reverse();
     }
   }
 
   void _handleFocusChange() {
-    if (mounted) {
-      setState(() {
-        _isFocused = _focusNode.hasFocus;
-      });
+    if (!mounted) return;
+    final hasFocus = _focusNode.hasFocus;
+    if (widget.builder != null) {
+      setState(() => _isFocused = hasFocus);
+    } else {
+      _isFocused = hasFocus;
     }
   }
 
   void _handleTapDown(TapDownDetails details) {
-    if (!widget.enabled || widget.onPressed == null) return;
-    setState(() => _isPressed = true);
+    if (!_isInteractive) return;
+    if (widget.builder != null) {
+      setState(() => _isPressed = true);
+    } else {
+      _isPressed = true;
+    }
     _controller.forward();
     if (widget.enableHaptic) {
       HapticFeedback.lightImpact();
@@ -122,14 +153,24 @@ class _SofPressableState extends State<SofPressable> with SingleTickerProviderSt
   }
 
   void _handleTapUp(TapUpDetails details) {
-    if (!widget.enabled) return;
-    setState(() => _isPressed = false);
+    if (_isPressed) {
+      if (widget.builder != null) {
+        setState(() => _isPressed = false);
+      } else {
+        _isPressed = false;
+      }
+    }
     _controller.reverse();
   }
 
   void _handleTapCancel() {
-    if (!widget.enabled) return;
-    setState(() => _isPressed = false);
+    if (_isPressed) {
+      if (widget.builder != null) {
+        setState(() => _isPressed = false);
+      } else {
+        _isPressed = false;
+      }
+    }
     _controller.reverse();
   }
 
@@ -139,6 +180,7 @@ class _SofPressableState extends State<SofPressable> with SingleTickerProviderSt
     if (widget.focusNode == null) {
       _focusNode.dispose();
     }
+    _curvedAnimation.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -146,7 +188,7 @@ class _SofPressableState extends State<SofPressable> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final theme = SoflumeTheme.of(context);
-    final isInteractive = widget.enabled && widget.onPressed != null;
+    final isInteractive = _isInteractive;
 
     final pressableState = SofPressableState(
       isHovered: _isHovered,
@@ -159,7 +201,7 @@ class _SofPressableState extends State<SofPressable> with SingleTickerProviderSt
         ? widget.builder!(context, pressableState)
         : widget.child!;
 
-    if (!isInteractive) {
+    if (!isInteractive && widget.dimWhenDisabled) {
       content = Opacity(
         opacity: 0.45,
         child: content,
@@ -167,9 +209,7 @@ class _SofPressableState extends State<SofPressable> with SingleTickerProviderSt
     }
 
     // Apply scale transition
-    if (theme.motion.reduceMotion || widget.pressScale == 1.0) {
-      // Skip scale animation in reduce motion
-    } else {
+    if (!theme.motion.reduceMotion && widget.pressScale != 1.0) {
       content = ScaleTransition(
         scale: _scaleAnimation,
         child: content,
@@ -186,14 +226,24 @@ class _SofPressableState extends State<SofPressable> with SingleTickerProviderSt
         enabled: isInteractive,
         mouseCursor: isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic,
         onShowHoverHighlight: (hovering) {
-          if (mounted) {
-            setState(() => _isHovered = hovering);
+          if (!mounted || widget.builder == null) {
+            _isHovered = hovering;
+            return;
           }
+          setState(() => _isHovered = hovering);
         },
         actions: {
           ActivateIntent: CallbackAction<ActivateIntent>(
             onInvoke: (_) {
               if (isInteractive) {
+                if (widget.enableHaptic) {
+                  HapticFeedback.lightImpact();
+                }
+                if (!theme.motion.reduceMotion && widget.pressScale != 1.0) {
+                  _controller.forward().then((_) {
+                    if (mounted) _controller.reverse();
+                  });
+                }
                 widget.onPressed?.call();
               }
               return null;

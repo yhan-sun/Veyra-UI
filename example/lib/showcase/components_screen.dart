@@ -24,6 +24,8 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
   SofMorphingState _morphState = SofMorphingState.idle;
   bool _buttonLoading = false;
   bool _componentDisabled = false;
+  bool _chipSelected = true;
+  bool _showDeletableChip = true;
   String? _selectedFramework = 'flutter';
   final TextEditingController _inputController = TextEditingController(text: 'Soft Lumen 柔光设计');
   final FocusNode _inputFocusNode = FocusNode();
@@ -64,7 +66,7 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
   }
 
   void _showCodeModal(String title, String code) {
-    showSofDialog(
+    showSofDialog<void>(
       context: context,
       builder: (context) {
         return SofDialog(
@@ -77,7 +79,7 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
             ),
             SofButton(
               variant: SofButtonVariant.filled,
-              leading: const SofIcon(SofIcons.clipboard, size: 16, color: Color(0xFFFFFFFF)),
+              leading: const SofIcon(SofIcons.clipboard, size: 16),
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: code));
                 Navigator.of(context).pop();
@@ -438,7 +440,7 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
                 variant: SofButtonVariant.filled,
                 loading: _buttonLoading,
                 enabled: !_componentDisabled,
-                leading: const SofIcon(SofIcons.zap, size: 16, color: Color(0xFFFFFFFF)),
+                leading: const SofIcon(SofIcons.zap, size: 16),
                 onPressed: () => _copyCode('SofButton(variant: SofButtonVariant.filled)'),
                 child: const Text('Filled 强行动'),
               ),
@@ -466,7 +468,7 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
               SofIconButton(
                 variant: SofButtonVariant.filled,
                 enabled: !_componentDisabled,
-                icon: const SofIcon(SofIcons.heart, size: 16, color: Color(0xFFFFFFFF)),
+                icon: const SofIcon(SofIcons.heart, size: 16),
                 onPressed: () {},
               ),
               SofIconButton(
@@ -863,7 +865,7 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
         _buildPlaygroundCard(
           title: '1. showSofDialog (模态对话框)',
           desc: '聚焦环、键盘 ESC 监听、Barrier 遮罩与平滑缩放进入。',
-          code: 'showSofDialog(\n  context: context,\n  builder: (context) => SofDialog(\n    title: const Text("确认提交更改？"),\n    content: const Text("提交后所有设置将立即生效并同步至云端。"),\n    actions: [\n      SofButton(variant: SofButtonVariant.ghost, onPressed: () => Navigator.pop(context), child: const Text("取消")),\n      SofButton(variant: SofButtonVariant.filled, onPressed: () => Navigator.pop(context), child: const Text("确认")),\n    ],\n  ),\n);',
+          code: 'showSofDialog(\n  context: context,\n  builder: (context) => SofDialog(\n    title: const Text("确认提交更改？"),\n    actions: [\n      SofButton(variant: SofButtonVariant.ghost, onPressed: () => Navigator.pop(context), child: const Text("取消")),\n      SofButton(variant: SofButtonVariant.filled, onPressed: () => Navigator.pop(context), child: const Text("确认")),\n    ],\n    child: const Text("提交后所有设置将立即生效并同步至云端。"),\n  ),\n);',
           preview: Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -871,7 +873,7 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
               SofButton(
                 variant: SofButtonVariant.filled,
                 onPressed: () {
-                  showSofDialog(
+                  showSofDialog<void>(
                     context: context,
                     builder: (ctx) => SofDialog(
                       title: const Text('系统升级确认'),
@@ -903,19 +905,18 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
               SofButton(
                 variant: SofButtonVariant.subtle,
                 onPressed: () {
-                  showSofSheet(
+                  showSofSheet<void>(
                     context: context,
-                    builder: (ctx) => Container(
-                      padding: const EdgeInsets.all(24),
+                    builder: (ctx) => SofSheet(
+                      title: const Text('底部操作抽屉 (SofSheet)'),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('底部操作抽屉 (SofSheet)', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                          const SizedBox(height: 12),
                           const Text('支持下拉手势快速划出关闭，或使用键盘 ESC 键退回。'),
                           const SizedBox(height: 20),
                           SofButton(
                             variant: SofButtonVariant.filled,
+                            fullWidth: true,
                             onPressed: () => Navigator.of(ctx).pop(),
                             child: const Text('完成并退出'),
                           ),
@@ -977,7 +978,7 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
         _buildPlaygroundCard(
           title: '3. SofPopover (悬浮上下文气泡浮层)',
           desc: '基于目标锚点定位，支持视口边缘自适应吸附防溢出、毛玻璃材质与 ESC / 外部点击自动关闭。',
-          code: 'SofPopover(\n  placement: SofPopoverPlacement.bottom,\n  content: const Text("气泡上下文操作详情..."),\n  child: SofButton(child: const Text("触发气泡")),\n);',
+          code: 'SofPopover(\n  placement: SofPopoverPlacement.bottom,\n  content: const Text("气泡上下文操作详情..."),\n  child: SofButton(onPressed: () {}, child: const Text("触发气泡")),\n);',
           preview: Wrap(
             spacing: 16,
             runSpacing: 12,
@@ -1040,17 +1041,32 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
           title: '1. SofBadge & SofChip (角标与标签)',
           desc: '紧凑型状态表达与可交互可删除标签芯片。',
           code: 'SofBadge(label: Text("PRO"), variant: SofBadgeVariant.accent);\nSofChip(label: Text("Flutter Web"), onDeleted: () {});',
-          preview: const Wrap(
+          preview: Wrap(
             spacing: 12,
             runSpacing: 12,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              SofBadge(label: Text('Accent'), variant: SofBadgeVariant.accent),
-              SofBadge(label: Text('Success'), variant: SofBadgeVariant.success),
-              SofBadge(label: Text('Danger'), variant: SofBadgeVariant.danger),
-              SofBadge(label: Text('Neutral'), variant: SofBadgeVariant.neutral),
-              SofChip(label: Text('Cross-Platform')),
-              SofChip(label: Text('Soft Lumen')),
+              const SofBadge(label: Text('Accent'), variant: SofBadgeVariant.accent),
+              const SofBadge(label: Text('Success'), variant: SofBadgeVariant.success),
+              const SofBadge(label: Text('Danger'), variant: SofBadgeVariant.danger),
+              const SofBadge(label: Text('Neutral'), variant: SofBadgeVariant.neutral),
+              SofChip(
+                label: const Text('Cross-Platform'),
+                selected: _chipSelected,
+                onSelected: (v) => setState(() => _chipSelected = v),
+              ),
+              if (_showDeletableChip)
+                SofChip(
+                  label: const Text('Soft Lumen'),
+                  onDeleted: () => setState(() => _showDeletableChip = false),
+                )
+              else
+                SofButton(
+                  size: SofButtonSize.small,
+                  variant: SofButtonVariant.subtle,
+                  onPressed: () => setState(() => _showDeletableChip = true),
+                  child: const Text('恢复标签'),
+                ),
             ],
           ),
         ),
@@ -1136,33 +1152,37 @@ class _ComponentsScreenState extends State<ComponentsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(title, style: typography.title.copyWith(fontWeight: FontWeight.w700)),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SofButton(
-                    size: SofButtonSize.small,
-                    variant: SofButtonVariant.ghost,
-                    leading: const SofIcon(SofIcons.code, size: 14),
-                    onPressed: () => _showCodeModal(title, code),
-                    child: const Text('查看代码'),
-                  ),
-                  const SizedBox(width: 6),
-                  SofButton(
-                    size: SofButtonSize.small,
-                    variant: SofButtonVariant.subtle,
-                    leading: const SofIcon(SofIcons.clipboard, size: 14),
-                    onPressed: () => _copyCode(code),
-                    child: const Text('复制'),
-                  ),
-                ],
-              ),
-            ],
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                Text(title, style: typography.title.copyWith(fontWeight: FontWeight.w700)),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SofButton(
+                      size: SofButtonSize.small,
+                      variant: SofButtonVariant.ghost,
+                      leading: const SofIcon(SofIcons.code, size: 14),
+                      onPressed: () => _showCodeModal(title, code),
+                      child: const Text('查看代码'),
+                    ),
+                    const SizedBox(width: 6),
+                    SofButton(
+                      size: SofButtonSize.small,
+                      variant: SofButtonVariant.subtle,
+                      leading: const SofIcon(SofIcons.clipboard, size: 14),
+                      onPressed: () => _copyCode(code),
+                      child: const Text('复制'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 4),
           Text(desc, style: typography.caption.copyWith(color: colors.contentSecondary)),

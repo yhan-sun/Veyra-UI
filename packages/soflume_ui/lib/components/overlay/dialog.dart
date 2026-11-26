@@ -63,14 +63,11 @@ class SofDialog extends StatelessWidget {
                 ),
                 if (actions != null && actions!.isNotEmpty) ...[
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: actions!
-                        .map((action) => Padding(
-                              padding: const EdgeInsets.only(left: 10),
-                              child: action,
-                            ))
-                        .toList(),
+                  Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 10,
+                    runSpacing: 8,
+                    children: actions!,
                   ),
                 ],
               ],
@@ -125,9 +122,14 @@ Future<T?> showSofDialog<T>({
               },
               child: PopScope(
                 canPop: barrierDismissible,
-                child: SoflumeTheme(
-                  data: theme,
-                  child: builder(context),
+                child: Builder(
+                  builder: (routeCtx) {
+                    final hasTheme = SoflumeTheme.maybeOf(routeCtx) != null;
+                    final content = builder(routeCtx);
+                    return hasTheme
+                        ? content
+                        : SoflumeTheme(data: theme, child: content);
+                  },
                 ),
               ),
             ),
@@ -137,7 +139,7 @@ Future<T?> showSofDialog<T>({
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final curvedAnimation = CurvedAnimation(
           parent: animation,
-          curve: theme.motion.springGentle,
+          curve: theme.motion.getEffectiveCurve(theme.motion.springGentle),
           reverseCurve: Curves.easeIn,
         );
 

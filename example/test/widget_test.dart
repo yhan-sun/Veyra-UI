@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:soflume_gallery/main.dart';
 
@@ -20,6 +21,18 @@ void main() {
     await tester.tap(find.text('组件展馆').first);
     await tester.pumpAndSettle();
     expect(find.text('标志性特色组件 (Signature Components)'), findsOneWidget);
+
+    // Verify SofPopover opens when clicking SofButton trigger in Overlays section
+    await tester.tap(find.text('弹层与通知').first);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('点击打开 SofPopover'));
+    await tester.tap(find.text('点击打开 SofPopover'));
+    await tester.pumpAndSettle();
+    expect(find.text('快速操作上下文'), findsOneWidget);
+
+    // Dismiss popover via outside tap
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
 
     // Switch to Theme Workshop (主题工坊)
     await tester.tap(find.text('主题工坊').first);
@@ -44,5 +57,17 @@ void main() {
     await tester.tap(find.text('数据看板').first);
     await tester.pumpAndSettle();
     expect(find.text('Total Revenue'), findsOneWidget);
+  });
+
+  testWidgets('Mobile 390px viewport renders overview and floating nav without overflow', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(const SoflumeShowcaseApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Soflume UI'), findsOneWidget);
+    expect(find.text('演示'), findsOneWidget);
   });
 }

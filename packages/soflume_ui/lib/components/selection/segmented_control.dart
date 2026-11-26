@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import '../../foundation/theme/theme.dart';
 import '../../foundation/shapes/squircle_border.dart';
+import '../../primitives/focus_ring.dart';
 
 /// Item descriptor for [SofSegmentedControl].
 class SofSegment<T> {
@@ -18,7 +19,7 @@ class SofSegment<T> {
   final bool enabled;
 }
 
-/// Sliding segmented pill control with physics spring positioning.
+/// Sliding segmented pill control with physics spring positioning and keyboard focus support.
 class SofSegmentedControl<T> extends StatelessWidget {
   const SofSegmentedControl({
     super.key,
@@ -50,116 +51,177 @@ class SofSegmentedControl<T> extends StatelessWidget {
     final outerRadius = borderRadius ?? radii.brMd;
     final innerRadius = SoflumeRadii.nestedBorderRadius(outerRadius.topLeft.x, 3.0);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final hasFiniteWidth = constraints.maxWidth.isFinite;
-        final totalWidth = hasFiniteWidth ? constraints.maxWidth : (segments.length * 88.0);
-        final segmentWidth = (totalWidth - 6.0) / segments.length;
+    return Opacity(
+      opacity: enabled ? 1.0 : 0.45,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final hasFiniteWidth = constraints.maxWidth.isFinite;
+          final totalWidth = hasFiniteWidth ? constraints.maxWidth : (segments.length * 88.0);
+          final segmentWidth = (totalWidth - 6.0) / segments.length;
 
-        return Container(
-          width: hasFiniteWidth ? null : totalWidth,
-          height: height,
-          padding: const EdgeInsets.all(3.0),
-          decoration: ShapeDecoration(
-            color: colors.isDark ? colors.surfaceMuted : colors.surfaceMuted,
-            shape: SofSquircleBorder(
-              borderRadius: outerRadius,
-              side: BorderSide(color: colors.outlineSubtle, width: 0.8),
+          return Container(
+            width: hasFiniteWidth ? null : totalWidth,
+            height: height,
+            padding: const EdgeInsets.all(3.0),
+            decoration: ShapeDecoration(
+              color: colors.surfaceMuted,
+              shape: SofSquircleBorder(
+                borderRadius: outerRadius,
+                side: BorderSide(color: colors.outlineSubtle, width: 0.8),
+              ),
             ),
-          ),
-          child: Stack(
-            children: [
-              // Sliding active pill
-              AnimatedPositioned(
-                duration: theme.motion.getEffectiveDuration(theme.motion.durationQuick),
-                curve: theme.motion.springSnappy,
-                left: validIndex * segmentWidth,
-                top: 0,
-                bottom: 0,
-                width: segmentWidth,
-                child: DecoratedBox(
-                  decoration: ShapeDecoration(
-                    color: colors.isDark ? colors.surfaceRaised : colors.surface,
-                    shape: SofSquircleBorder(
-                      borderRadius: innerRadius,
-                      side: BorderSide(
-                        color: colors.isDark
-                            ? colors.outlineSubtle
-                            : const Color(0x18000000),
-                        width: 0.8,
+            child: Stack(
+              children: [
+                // Sliding active pill
+                AnimatedPositioned(
+                  duration: theme.motion.getEffectiveDuration(theme.motion.durationQuick),
+                  curve: theme.motion.getEffectiveCurve(theme.motion.springSnappy),
+                  left: validIndex * segmentWidth,
+                  top: 0,
+                  bottom: 0,
+                  width: segmentWidth,
+                  child: DecoratedBox(
+                    decoration: ShapeDecoration(
+                      color: colors.isDark ? colors.surfaceRaised : colors.surface,
+                      shape: SofSquircleBorder(
+                        borderRadius: innerRadius,
+                        side: BorderSide(
+                          color: colors.isDark
+                              ? colors.outlineSubtle
+                              : const Color(0x18000000),
+                          width: 0.8,
+                        ),
                       ),
+                      shadows: const [
+                        BoxShadow(
+                          color: Color(0x14000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
                     ),
-                    shadows: const [
-                      BoxShadow(
-                        color: Color(0x14000000),
-                        blurRadius: 4,
-                        offset: Offset(0, 1),
-                      ),
-                    ],
                   ),
                 ),
-              ),
 
-              // Segment click targets and labels
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: List.generate(segments.length, (index) {
-                  final segment = segments[index];
-                  final isSelected = index == validIndex;
-                  final isSegmentInteractive = enabled && segment.enabled && onChanged != null;
+                // Segment click & keyboard focus targets
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: List.generate(segments.length, (index) {
+                    final segment = segments[index];
+                    final isSelected = index == validIndex;
+                    final isSegmentInteractive = enabled && segment.enabled && onChanged != null;
 
-                  final textColor = isSelected
-                      ? colors.contentPrimary
-                      : colors.contentSecondary;
+                    final textColor = !segment.enabled
+                        ? colors.contentTertiary
+                        : (isSelected ? colors.contentPrimary : colors.contentSecondary);
 
-                  return Expanded(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: isSegmentInteractive
-                          ? () {
-                              if (!isSelected) {
-                                HapticFeedback.selectionClick();
-                                onChanged!(segment.value);
-                              }
-                            }
-                          : null,
-                      child: Center(
-                        child: AnimatedDefaultTextStyle(
-                          duration: theme.motion.getEffectiveDuration(theme.motion.durationInstant),
-                          style: typography.label.copyWith(
-                            color: textColor,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: segment.icon != null
-                                ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      IconTheme(
-                                        data: IconThemeData(
-                                          size: 16,
-                                          color: textColor,
+                    return Expanded(
+                      child: _SegmentTarget(
+                        isSelected: isSelected,
+                        enabled: isSegmentInteractive,
+                        borderRadius: innerRadius,
+                        onSelect: () {
+                          if (!isSelected) {
+                            HapticFeedback.selectionClick();
+                            onChanged!(segment.value);
+                          }
+                        },
+                        child: Center(
+                          child: AnimatedDefaultTextStyle(
+                            duration: theme.motion.getEffectiveDuration(theme.motion.durationInstant),
+                            style: typography.label.copyWith(
+                              color: textColor,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: segment.icon != null
+                                  ? Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        IconTheme(
+                                          data: IconThemeData(
+                                            size: 16,
+                                            color: textColor,
+                                          ),
+                                          child: segment.icon!,
                                         ),
-                                        child: segment.icon!,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      segment.label,
-                                    ],
-                                  )
-                                : segment.label,
+                                        const SizedBox(width: 6),
+                                        segment.label,
+                                      ],
+                                    )
+                                  : segment.label,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }),
-              ),
-            ],
+                    );
+                  }),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SegmentTarget extends StatefulWidget {
+  const _SegmentTarget({
+    required this.isSelected,
+    required this.enabled,
+    required this.borderRadius,
+    required this.onSelect,
+    required this.child,
+  });
+
+  final bool isSelected;
+  final bool enabled;
+  final BorderRadius borderRadius;
+  final VoidCallback onSelect;
+  final Widget child;
+
+  @override
+  State<_SegmentTarget> createState() => _SegmentTargetState();
+}
+
+class _SegmentTargetState extends State<_SegmentTarget> {
+  bool _isFocused = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      inMutuallyExclusiveGroup: true,
+      selected: widget.isSelected,
+      enabled: widget.enabled,
+      button: true,
+      child: FocusableActionDetector(
+        enabled: widget.enabled,
+        mouseCursor: widget.enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        onShowFocusHighlight: (focused) {
+          if (mounted) setState(() => _isFocused = focused);
+        },
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              if (widget.enabled) widget.onSelect();
+              return null;
+            },
           ),
-        );
-      },
+        },
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.enabled ? widget.onSelect : null,
+          child: SofFocusRing(
+            focused: _isFocused,
+            borderRadius: widget.borderRadius,
+            ringOffset: 1.0,
+            child: widget.child,
+          ),
+        ),
+      ),
     );
   }
 }

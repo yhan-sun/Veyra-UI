@@ -21,7 +21,7 @@
   <link rel="manifest" href="manifest.json">
   <style>
     body {
-      background-color: #101218;
+      background-color: #0B0D14;
       margin: 0;
       padding: 0;
       overflow: hidden;
@@ -33,7 +33,7 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      color: #9EA8FF;
+      color: #6366F1;
       transition: opacity 0.4s ease-out;
       pointer-events: auto;
     }
@@ -44,10 +44,22 @@
     .spinner {
       width: 44px;
       height: 44px;
-      border: 3px solid rgba(158, 168, 255, 0.2);
+      border: 3px solid rgba(99, 102, 241, 0.2);
       border-radius: 50%;
-      border-top-color: #9EA8FF;
+      border-top-color: #6366F1;
       animation: spin 0.8s linear infinite;
+    }
+    @media (prefers-color-scheme: light) {
+      body {
+        background-color: #F8FAFC;
+      }
+      #loading-container {
+        color: #4F46E5;
+      }
+      .spinner {
+        border-color: rgba(79, 70, 229, 0.2);
+        border-top-color: #4F46E5;
+      }
     }
     @keyframes spin {
       to { transform: rotate(360deg); }

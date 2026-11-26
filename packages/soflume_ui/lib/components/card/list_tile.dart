@@ -1,5 +1,8 @@
 import 'package:flutter/widgets.dart';
+import '../../foundation/icons/icon.dart';
+import '../../foundation/icons/soflume_icons.dart';
 import '../../foundation/theme/theme.dart';
+import '../../primitives/focus_ring.dart';
 import '../../primitives/pressable.dart';
 
 /// Flagship list tile item designed for grouped settings, menus, and item lists.
@@ -14,6 +17,9 @@ class SofListTile extends StatelessWidget {
     this.onPressed,
     this.enabled = true,
     this.padding,
+    this.focusNode,
+    this.autofocus = false,
+    this.semanticLabel,
   });
 
   final Widget title;
@@ -24,6 +30,9 @@ class SofListTile extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool enabled;
   final EdgeInsetsGeometry? padding;
+  final FocusNode? focusNode;
+  final bool autofocus;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -79,11 +88,10 @@ class SofListTile extends StatelessWidget {
           ],
           if (showChevron) ...[
             const SizedBox(width: 8),
-            CustomPaint(
-              size: const Size(8, 14),
-              painter: _ChevronPainter(
-                color: colors.contentSecondary.withValues(alpha: 0.6),
-              ),
+            SofIcon(
+              SofIcons.chevronRight,
+              size: 16,
+              color: colors.contentSecondary.withValues(alpha: 0.65),
             ),
           ],
         ],
@@ -94,16 +102,24 @@ class SofListTile extends StatelessWidget {
       return SofPressable(
         onPressed: onPressed,
         enabled: enabled,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        semanticLabel: semanticLabel,
         pressScale: 0.99,
         builder: (context, state) {
-          return AnimatedContainer(
-            duration: theme.motion.getEffectiveDuration(theme.motion.durationInstant),
-            decoration: BoxDecoration(
-              color: state.isHovered
-                  ? colors.surfaceMuted.withValues(alpha: 0.5)
-                  : const Color(0x00000000),
+          return SofFocusRing(
+            focused: state.isFocused,
+            borderRadius: theme.radii.brMd,
+            ringOffset: 0.5,
+            child: AnimatedContainer(
+              duration: theme.motion.getEffectiveDuration(theme.motion.durationInstant),
+              decoration: BoxDecoration(
+                color: state.isHovered
+                    ? colors.surfaceMuted.withValues(alpha: 0.5)
+                    : const Color(0x00000000),
+              ),
+              child: tileContent,
             ),
-            child: tileContent,
           );
         },
       );
@@ -111,30 +127,4 @@ class SofListTile extends StatelessWidget {
 
     return tileContent;
   }
-}
-
-class _ChevronPainter extends CustomPainter {
-  const _ChevronPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final path = Path();
-    path.moveTo(1.5, 1.5);
-    path.lineTo(size.width - 1.5, size.height / 2);
-    path.lineTo(1.5, size.height - 1.5);
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_ChevronPainter oldDelegate) => oldDelegate.color != color;
 }
