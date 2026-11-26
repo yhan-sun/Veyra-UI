@@ -126,12 +126,16 @@ class _OverviewScreenState extends State<OverviewScreen> {
             children: [
               SofIcon(SofIcons.sparkles, size: 14, color: colors.accent),
               const SizedBox(width: 8),
-              Text(
-                'Soft Lumen Design System 2.0 • 旗舰级跨平台组件库',
-                style: typography.caption.copyWith(
-                  color: colors.accent,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.2,
+              Flexible(
+                child: Text(
+                  'Soft Lumen Design System 2.0 • 旗舰级跨平台组件库',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: typography.caption.copyWith(
+                    color: colors.accent,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                  ),
                 ),
               ),
             ],
@@ -192,7 +196,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
             SofButton(
               size: SofButtonSize.large,
               variant: SofButtonVariant.filled,
-              leading: const SofIcon(SofIcons.component, size: 20, color: Color(0xFFFFFFFF)),
+              leading: const SofIcon(SofIcons.component, size: 20),
               onPressed: widget.onNavigateToComponents,
               child: const Text('探索全套交互组件'),
             ),
@@ -258,13 +262,17 @@ class _OverviewScreenState extends State<OverviewScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      'LIVE SHOWCASE STAGE • 实时交互体验工作台',
-                      style: typography.caption.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 11,
-                        letterSpacing: 0.5,
-                        color: colors.contentSecondary,
+                    Flexible(
+                      child: Text(
+                        'LIVE SHOWCASE STAGE • 实时交互体验工作台',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: typography.caption.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                          letterSpacing: 0.5,
+                          color: colors.contentSecondary,
+                        ),
                       ),
                     ),
                   ],
@@ -456,53 +464,62 @@ class _OverviewScreenState extends State<OverviewScreen> {
           const SizedBox(height: 12),
 
           // Controls Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              SofIconButton(
-                variant: SofButtonVariant.ghost,
-                icon: const SofIcon(SofIcons.shuffle, size: 18),
-                onPressed: () {
-                  showSofToast(context: context, message: '随机播放已切换');
-                },
+          SizedBox(
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  SofIconButton(
+                    variant: SofButtonVariant.ghost,
+                    icon: const SofIcon(SofIcons.shuffle, size: 18),
+                    onPressed: () {
+                      showSofToast(context: context, message: '随机播放已切换');
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                  SofIconButton(
+                    variant: SofButtonVariant.ghost,
+                    icon: const SofIcon(SofIcons.skipBack, size: 20),
+                    onPressed: () {
+                      setState(() => _musicProgress = 0.0);
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                  // Morphing Play/Pause button
+                  SofButton(
+                    variant: SofButtonVariant.filled,
+                    size: SofButtonSize.medium,
+                    leading: SofIcon(
+                      _musicPlaying ? SofIcons.pause : SofIcons.play,
+                      size: 18,
+                    ),
+                    onPressed: () {
+                      setState(() => _musicPlaying = !_musicPlaying);
+                    },
+                    child: Text(_musicPlaying ? '暂停' : '播放'),
+                  ),
+                  const SizedBox(width: 6),
+                  SofIconButton(
+                    variant: SofButtonVariant.ghost,
+                    icon: const SofIcon(SofIcons.skipForward, size: 20),
+                    onPressed: () {
+                      setState(() => _musicProgress = 0.0);
+                      showSofToast(context: context, message: '切换下一首: Superellipse Nocturne');
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                  SofIconButton(
+                    variant: SofButtonVariant.ghost,
+                    icon: const SofIcon(SofIcons.repeat, size: 18),
+                    onPressed: () {
+                      showSofToast(context: context, message: '单曲循环已开启');
+                    },
+                  ),
+                ],
               ),
-              SofIconButton(
-                variant: SofButtonVariant.ghost,
-                icon: const SofIcon(SofIcons.skipBack, size: 20),
-                onPressed: () {
-                  setState(() => _musicProgress = 0.0);
-                },
-              ),
-              // Morphing Play/Pause button
-              SofButton(
-                variant: SofButtonVariant.filled,
-                size: SofButtonSize.medium,
-                leading: SofIcon(
-                  _musicPlaying ? SofIcons.pause : SofIcons.play,
-                  size: 18,
-                  color: const Color(0xFFFFFFFF),
-                ),
-                onPressed: () {
-                  setState(() => _musicPlaying = !_musicPlaying);
-                },
-                child: Text(_musicPlaying ? '暂停' : '播放'),
-              ),
-              SofIconButton(
-                variant: SofButtonVariant.ghost,
-                icon: const SofIcon(SofIcons.skipForward, size: 20),
-                onPressed: () {
-                  setState(() => _musicProgress = 0.0);
-                  showSofToast(context: context, message: '切换下一首: Superellipse Nocturne');
-                },
-              ),
-              SofIconButton(
-                variant: SofButtonVariant.ghost,
-                icon: const SofIcon(SofIcons.repeat, size: 18),
-                onPressed: () {
-                  showSofToast(context: context, message: '单曲循环已开启');
-                },
-              ),
-            ],
+            ),
           ),
         ],
       ),
@@ -524,104 +541,123 @@ class _OverviewScreenState extends State<OverviewScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '控制中心快捷矩阵',
-                style: typography.headline.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                  color: colors.contentPrimary,
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                Text(
+                  '控制中心快捷矩阵',
+                  style: typography.headline.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: colors.contentPrimary,
+                  ),
                 ),
-              ),
-              Text(
-                'OriginOS 6 拟态触感',
-                style: typography.caption.copyWith(color: colors.accent, fontWeight: FontWeight.w600),
-              ),
-            ],
+                Text(
+                  'OriginOS 6 拟态触感',
+                  style: typography.caption.copyWith(color: colors.accent, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
 
           // Two toggle cards (Wi-Fi and Bluetooth)
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colors.surfaceMuted,
-                    borderRadius: BorderRadius.circular(radii.md),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: _wifiEnabled ? colors.accent : colors.outlineSubtle,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const SofIcon(SofIcons.wifi, size: 16, color: Color(0xFFFFFFFF)),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Wi-Fi 7', style: typography.caption.copyWith(fontWeight: FontWeight.w700)),
-                            Text(_wifiEnabled ? '已连接' : '已关闭',
-                                style: typography.caption.copyWith(fontSize: 10, color: colors.contentSecondary)),
-                          ],
-                        ),
-                      ),
-                      SofToggle(
-                        value: _wifiEnabled,
-                        onChanged: (v) => setState(() => _wifiEnabled = v),
-                        size: 24,
-                      ),
-                    ],
-                  ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final wifiTile = Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colors.surfaceMuted,
+                  borderRadius: BorderRadius.circular(radii.md),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colors.surfaceMuted,
-                    borderRadius: BorderRadius.circular(radii.md),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: _bluetoothEnabled ? colors.accent : colors.outlineSubtle,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const SofIcon(SofIcons.bluetooth, size: 16, color: Color(0xFFFFFFFF)),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: _wifiEnabled ? colors.accent : colors.outlineSubtle,
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('蓝牙 5.4', style: typography.caption.copyWith(fontWeight: FontWeight.w700)),
-                            Text(_bluetoothEnabled ? '已就绪' : '已关闭',
-                                style: typography.caption.copyWith(fontSize: 10, color: colors.contentSecondary)),
-                          ],
-                        ),
+                      child: const SofIcon(SofIcons.wifi, size: 16, color: Color(0xFFFFFFFF)),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Wi-Fi 7', style: typography.caption.copyWith(fontWeight: FontWeight.w700)),
+                          Text(_wifiEnabled ? '已连接' : '已关闭',
+                              style: typography.caption.copyWith(fontSize: 10, color: colors.contentSecondary)),
+                        ],
                       ),
-                      SofToggle(
-                        value: _bluetoothEnabled,
-                        onChanged: (v) => setState(() => _bluetoothEnabled = v),
-                        size: 24,
-                      ),
-                    ],
-                  ),
+                    ),
+                    SofToggle(
+                      value: _wifiEnabled,
+                      onChanged: (v) => setState(() => _wifiEnabled = v),
+                      size: 24,
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              );
+
+              final btTile = Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colors.surfaceMuted,
+                  borderRadius: BorderRadius.circular(radii.md),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: _bluetoothEnabled ? colors.accent : colors.outlineSubtle,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const SofIcon(SofIcons.bluetooth, size: 16, color: Color(0xFFFFFFFF)),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('蓝牙 5.4', style: typography.caption.copyWith(fontWeight: FontWeight.w700)),
+                          Text(_bluetoothEnabled ? '已就绪' : '已关闭',
+                              style: typography.caption.copyWith(fontSize: 10, color: colors.contentSecondary)),
+                        ],
+                      ),
+                    ),
+                    SofToggle(
+                      value: _bluetoothEnabled,
+                      onChanged: (v) => setState(() => _bluetoothEnabled = v),
+                      size: 24,
+                    ),
+                  ],
+                ),
+              );
+
+              if (constraints.maxWidth < 360) {
+                return Column(
+                  children: [
+                    wifiTile,
+                    const SizedBox(height: 10),
+                    btTile,
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(child: wifiTile),
+                  const SizedBox(width: 12),
+                  Expanded(child: btTile),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 16),
 
@@ -690,22 +726,24 @@ class _OverviewScreenState extends State<OverviewScreen> {
               child: SofIcon(SofIcons.cpu, size: 18, color: colors.accent),
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '旗舰操作系统基因重构',
-                  style: typography.display.copyWith(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '旗舰操作系统基因重构',
+                    style: typography.display.copyWith(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                ),
-                Text(
-                  '汲取各大旗舰 OS 交互思想，演化为 Soflume 独有的 Soft Lumen 柔光设计语法。',
-                  style: typography.body.copyWith(fontSize: 14, color: colors.contentSecondary),
-                ),
-              ],
+                  Text(
+                    '汲取各大旗舰 OS 交互思想，演化为 Soflume 独有的 Soft Lumen 柔光设计语法。',
+                    style: typography.body.copyWith(fontSize: 14, color: colors.contentSecondary),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -882,34 +920,40 @@ class _OverviewScreenState extends State<OverviewScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '核心十件套组件速览沙盒',
-                  style: typography.display.copyWith(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+        SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 12,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '核心十件套组件速览沙盒',
+                    style: typography.display.copyWith(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                ),
-                Text(
-                  '无须跳转即可在首页立即测试组件的微交互、触感回弹与状态变化。',
-                  style: typography.body.copyWith(fontSize: 14, color: colors.contentSecondary),
-                ),
-              ],
-            ),
-            SofButton(
-              variant: SofButtonVariant.subtle,
-              size: SofButtonSize.small,
-              trailing: const SofIcon(SofIcons.chevronRight, size: 14),
-              onPressed: widget.onNavigateToComponents,
-              child: const Text('进入完整组件展馆'),
-            ),
-          ],
+                  Text(
+                    '无须跳转即可在首页立即测试组件的微交互、触感回弹与状态变化。',
+                    style: typography.body.copyWith(fontSize: 14, color: colors.contentSecondary),
+                  ),
+                ],
+              ),
+              SofButton(
+                variant: SofButtonVariant.subtle,
+                size: SofButtonSize.small,
+                trailing: const SofIcon(SofIcons.chevronRight, size: 14),
+                onPressed: widget.onNavigateToComponents,
+                child: const Text('进入完整组件展馆'),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 20),
 
@@ -1033,45 +1077,44 @@ class _OverviewScreenState extends State<OverviewScreen> {
         );
 
       case 2:
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '用户名或邮箱',
-                    style: typography.caption.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: colors.contentPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const SofTextField(
-                    placeholder: '请输入您的账号...',
-                    prefix: SofIcon(SofIcons.users, size: 18),
-                    helperText: '支持全键盘聚焦环与 IME 输入优化',
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: SofSelect<String>(
-                label: '性能规格选择',
-                placeholder: '选择规格',
-                value: _sandboxSelectVal,
-                items: const [
-                  SofSelectItem(value: 'standard', label: '标准规格 (Standard 4vCPU)'),
-                  SofSelectItem(value: 'pro', label: '旗舰规格 (Pro 8vCPU + NPU)'),
-                  SofSelectItem(value: 'enterprise', label: '企业旗舰 (Ultra 16vCPU 集群)'),
-                ],
-                onChanged: (v) => setState(() => _sandboxSelectVal = v),
-              ),
-            ),
+        const textFieldBlock = SofTextField(
+          label: '用户名或邮箱',
+          placeholder: '请输入您的账号...',
+          prefix: SofIcon(SofIcons.users, size: 18),
+          helperText: '支持全键盘聚焦环与 IME 输入优化',
+        );
+        final selectBlock = SofSelect<String>(
+          label: '性能规格选择',
+          placeholder: '选择规格',
+          value: _sandboxSelectVal,
+          items: const [
+            SofSelectItem(value: 'standard', label: '标准规格 (Standard 4vCPU)'),
+            SofSelectItem(value: 'pro', label: '旗舰规格 (Pro 8vCPU + NPU)'),
+            SofSelectItem(value: 'enterprise', label: '企业旗舰 (Ultra 16vCPU 集群)'),
           ],
+          onChanged: (v) => setState(() => _sandboxSelectVal = v),
+        );
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < 560) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  textFieldBlock,
+                  const SizedBox(height: 16),
+                  selectBlock,
+                ],
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Expanded(child: textFieldBlock),
+                const SizedBox(width: 20),
+                Expanded(child: selectBlock),
+              ],
+            );
+          },
         );
 
       case 3:
@@ -1096,7 +1139,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               variant: SofButtonVariant.subtle,
               leading: const SofIcon(SofIcons.alertCircle, size: 18),
               onPressed: () {
-                showSofDialog(
+                showSofDialog<void>(
                   context: context,
                   builder: (ctx) => SofDialog(
                     title: const Text('旗舰级高斯模糊对话框'),
@@ -1122,7 +1165,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               variant: SofButtonVariant.outlined,
               leading: const SofIcon(SofIcons.layout, size: 18),
               onPressed: () {
-                showSofSheet(
+                showSofSheet<void>(
                   context: context,
                   builder: (ctx) {
                     return SofSheet(
@@ -1246,12 +1289,21 @@ void main() {
                         Container(width: 10, height: 10, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF27C93F))),
                       ],
                     ),
-                    const SizedBox(width: 20),
+                    const SizedBox(width: 16),
                     // Tabs inside terminal
-                    _buildTerminalTab('1. pubspec.yaml', 0),
-                    _buildTerminalTab('2. main.dart', 1),
-                    _buildTerminalTab('3. 使用组件', 2),
-                    const Spacer(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildTerminalTab('1. pubspec.yaml', 0),
+                            _buildTerminalTab('2. main.dart', 1),
+                            _buildTerminalTab('3. 使用组件', 2),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     SofButton(
                       variant: SofButtonVariant.ghost,
                       size: SofButtonSize.small,

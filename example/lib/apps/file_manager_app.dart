@@ -80,7 +80,7 @@ class _FileManagerAppState extends State<FileManagerApp> {
   }
 
   void _showFileDetails(Map<String, dynamic> file) {
-    showSofDialog(
+    showSofDialog<void>(
       context: context,
       builder: (context) {
         return SofDialog(
@@ -144,46 +144,54 @@ class _FileManagerAppState extends State<FileManagerApp> {
               decoration: BoxDecoration(
                 border: Border(bottom: BorderSide(color: colors.outlineSubtle, width: 0.8)),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SofBreadcrumb(
+              child: SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 12,
+                  runSpacing: 10,
+                  children: [
+                    SofBreadcrumb(
                       items: [
                         SofBreadcrumbItem(label: 'iCloud Drive', onTap: () {}),
                         SofBreadcrumbItem(label: 'Projects', onTap: () {}),
                         const SofBreadcrumbItem(label: 'Soflume-UI'),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  // View Switcher (Grid vs List)
-                  SizedBox(
-                    width: 160,
-                    child: SofSegmentedControl<int>(
-                      value: _viewMode,
-                      onChanged: (mode) => setState(() => _viewMode = mode),
-                      height: 34,
-                      segments: const [
-                        SofSegment(value: 0, label: Text('Grid')),
-                        SofSegment(value: 1, label: Text('List')),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 150,
+                          child: SofSegmentedControl<int>(
+                            value: _viewMode,
+                            onChanged: (mode) => setState(() => _viewMode = mode),
+                            height: 34,
+                            segments: const [
+                              SofSegment(value: 0, label: Text('Grid')),
+                              SofSegment(value: 1, label: Text('List')),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        SofButton(
+                          size: SofButtonSize.small,
+                          variant: SofButtonVariant.filled,
+                          leading: const SofIcon(SofIcons.folder, size: 15),
+                          onPressed: () {
+                            showSofToast(
+                              context: context,
+                              message: 'New Folder created',
+                              variant: SofBadgeVariant.accent,
+                            );
+                          },
+                          child: const Text('New Folder'),
+                        ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  SofButton(
-                    size: SofButtonSize.small,
-                    variant: SofButtonVariant.filled,
-                    leading: const Text('+'),
-                    onPressed: () {
-                      showSofToast(
-                        context: context,
-                        message: 'New Folder created',
-                        variant: SofBadgeVariant.accent,
-                      );
-                    },
-                    child: const Text('New Folder'),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 

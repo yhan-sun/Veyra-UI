@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import '../../foundation/theme/theme.dart';
+import '../../primitives/focus_ring.dart';
 import '../../primitives/surface.dart';
 import '../../primitives/pressable.dart';
 
@@ -10,6 +11,7 @@ class SofCard extends StatelessWidget {
     required this.child,
     this.variant = SofSurfaceVariant.solid,
     this.onPressed,
+    this.enabled = true,
     this.padding,
     this.margin,
     this.borderRadius,
@@ -18,11 +20,15 @@ class SofCard extends StatelessWidget {
     this.borderWidth = 1.0,
     this.width,
     this.height,
+    this.focusNode,
+    this.autofocus = false,
+    this.semanticLabel,
   });
 
   final Widget child;
   final SofSurfaceVariant variant;
   final VoidCallback? onPressed;
+  final bool enabled;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
   final BorderRadius? borderRadius;
@@ -31,15 +37,19 @@ class SofCard extends StatelessWidget {
   final double borderWidth;
   final double? width;
   final double? height;
+  final FocusNode? focusNode;
+  final bool autofocus;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
     final theme = SoflumeTheme.of(context);
     final effectivePadding = padding ?? theme.spacing.insetsAllMd;
+    final effectiveRadius = borderRadius ?? theme.radii.brLg;
 
     final surface = SofSurface(
       variant: variant,
-      borderRadius: borderRadius ?? theme.radii.brLg,
+      borderRadius: effectiveRadius,
       color: color,
       borderColor: borderColor,
       borderWidth: borderWidth,
@@ -52,9 +62,19 @@ class SofCard extends StatelessWidget {
 
     if (onPressed != null) {
       return SofPressable(
-        onPressed: onPressed,
+        onPressed: enabled ? onPressed : null,
+        enabled: enabled,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        semanticLabel: semanticLabel,
         pressScale: 0.985,
-        child: surface,
+        builder: (context, state) {
+          return SofFocusRing(
+            focused: state.isFocused,
+            borderRadius: effectiveRadius,
+            child: surface,
+          );
+        },
       );
     }
 

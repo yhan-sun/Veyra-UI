@@ -102,7 +102,7 @@ class SoflumeThemeData {
       radii: SoflumeRadii.lerp(a.radii, b.radii, t),
       spacing: SoflumeSpacing.lerp(a.spacing, b.spacing, t),
       typography: SoflumeTypography.lerp(a.typography, b.typography, t),
-      motion: t < 0.5 ? a.motion : b.motion,
+      motion: SoflumeMotion.lerp(a.motion, b.motion, t),
       density: t < 0.5 ? a.density : b.density,
       reducedTransparency: t < 0.5 ? a.reducedTransparency : b.reducedTransparency,
     );

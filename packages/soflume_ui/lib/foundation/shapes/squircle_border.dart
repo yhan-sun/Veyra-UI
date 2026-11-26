@@ -40,6 +40,9 @@ class SofSquircleBorder extends OutlinedBorder {
   @override
   Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
     final innerRect = rect.deflate(side.strokeInset);
+    if (innerRect.width <= 0 || innerRect.height <= 0) {
+      return Path();
+    }
     return _computeSquirclePath(innerRect, borderRadius);
   }
 
@@ -50,17 +53,17 @@ class SofSquircleBorder extends OutlinedBorder {
 
   Path _computeSquirclePath(Rect rect, BorderRadius br) {
     final path = Path();
-    if (rect.isEmpty) return path;
+    if (rect.isEmpty || rect.width <= 0 || rect.height <= 0) return path;
 
     final width = rect.width;
     final height = rect.height;
     final maxRadius = math.min(width, height) / 2.0;
 
-    // Resolve corner radii bounded by maxRadius
-    final tl = math.min(br.topLeft.x, maxRadius);
-    final tr = math.min(br.topRight.x, maxRadius);
-    final brRad = math.min(br.bottomRight.x, maxRadius);
-    final bl = math.min(br.bottomLeft.x, maxRadius);
+    // Resolve corner radii bounded cleanly to [0, maxRadius]
+    final tl = br.topLeft.x.clamp(0.0, maxRadius);
+    final tr = br.topRight.x.clamp(0.0, maxRadius);
+    final brRad = br.bottomRight.x.clamp(0.0, maxRadius);
+    final bl = br.bottomLeft.x.clamp(0.0, maxRadius);
 
     if (tl <= 0 && tr <= 0 && brRad <= 0 && bl <= 0) {
       path.addRect(rect);
@@ -69,57 +72,74 @@ class SofSquircleBorder extends OutlinedBorder {
 
     final smooth = cornerSmoothing;
 
-    // Start at top edge after top-left corner
-    final startX = rect.left + tl * (1.0 + smooth * 0.2);
+    // Clamp smoothing lead-ins independently per edge so adjacent corners never cross on pills/circles.
+    double edgeExtra(double r, double oppositeR, double edgeLength) {
+      if (r <= 0 || smooth <= 0.01) return 0.0;
+      final desired = r * smooth * 0.2;
+      final remaining = math.max(0.0, edgeLength - (r + oppositeR));
+      final maxForCorner = remaining * (r / (r + oppositeR));
+      return math.min(desired, maxForCorner);
+    }
+
+    final tlTop = tl + edgeExtra(tl, tr, width);
+    final trTop = tr + edgeExtra(tr, tl, width);
+    final trRight = tr + edgeExtra(tr, brRad, height);
+    final brRight = brRad + edgeExtra(brRad, tr, height);
+    final brBottom = brRad + edgeExtra(brRad, bl, width);
+    final blBottom = bl + edgeExtra(bl, brRad, width);
+    final blLeft = bl + edgeExtra(bl, tl, height);
+    final tlLeft = tl + edgeExtra(tl, bl, height);
+
+    final startX = rect.left + tlTop;
     path.moveTo(startX, rect.top);
 
     // Top edge -> Top-right corner
-    final trStartX = rect.right - tr * (1.0 + smooth * 0.2);
+    final trStartX = rect.right - trTop;
     path.lineTo(trStartX, rect.top);
     if (tr > 0) {
       _addSmoothCorner(
         path,
         start: Offset(trStartX, rect.top),
         corner: Offset(rect.right, rect.top),
-        end: Offset(rect.right, rect.top + tr * (1.0 + smooth * 0.2)),
+        end: Offset(rect.right, rect.top + trRight),
         radius: tr,
         smooth: smooth,
-        quadrant: 1,
+        hasExtension: trTop > tr || trRight > tr,
       );
     }
 
     // Right edge -> Bottom-right corner
-    final brStartY = rect.bottom - brRad * (1.0 + smooth * 0.2);
+    final brStartY = rect.bottom - brRight;
     path.lineTo(rect.right, brStartY);
     if (brRad > 0) {
       _addSmoothCorner(
         path,
         start: Offset(rect.right, brStartY),
         corner: Offset(rect.right, rect.bottom),
-        end: Offset(rect.right - brRad * (1.0 + smooth * 0.2), rect.bottom),
+        end: Offset(rect.right - brBottom, rect.bottom),
         radius: brRad,
         smooth: smooth,
-        quadrant: 2,
+        hasExtension: brRight > brRad || brBottom > brRad,
       );
     }
 
     // Bottom edge -> Bottom-left corner
-    final blStartX = rect.left + bl * (1.0 + smooth * 0.2);
-    path.lineTo(rect.left + bl * (1.0 + smooth * 0.2), rect.bottom);
+    final blStartX = rect.left + blBottom;
+    path.lineTo(blStartX, rect.bottom);
     if (bl > 0) {
       _addSmoothCorner(
         path,
         start: Offset(blStartX, rect.bottom),
         corner: Offset(rect.left, rect.bottom),
-        end: Offset(rect.left, rect.bottom - bl * (1.0 + smooth * 0.2)),
+        end: Offset(rect.left, rect.bottom - blLeft),
         radius: bl,
         smooth: smooth,
-        quadrant: 3,
+        hasExtension: blBottom > bl || blLeft > bl,
       );
     }
 
     // Left edge -> Top-left corner
-    final tlStartY = rect.top + tl * (1.0 + smooth * 0.2);
+    final tlStartY = rect.top + tlLeft;
     path.lineTo(rect.left, tlStartY);
     if (tl > 0) {
       _addSmoothCorner(
@@ -129,7 +149,7 @@ class SofSquircleBorder extends OutlinedBorder {
         end: Offset(startX, rect.top),
         radius: tl,
         smooth: smooth,
-        quadrant: 4,
+        hasExtension: tlLeft > tl || tlTop > tl,
       );
     }
 
@@ -144,10 +164,10 @@ class SofSquircleBorder extends OutlinedBorder {
     required Offset end,
     required double radius,
     required double smooth,
-    required int quadrant,
+    required bool hasExtension,
   }) {
-    if (smooth <= 0.01) {
-      // Degenerate to standard quadratic / circular arc
+    if (smooth <= 0.01 || !hasExtension) {
+      // Fall back to true circular arc when smoothing is disabled or edge is pill/circle bounded.
       path.arcToPoint(end, radius: Radius.circular(radius));
       return;
     }
@@ -156,16 +176,14 @@ class SofSquircleBorder extends OutlinedBorder {
     // Control points calibrated for continuous tangential curvature (Apple / OriginOS ratio)
     final p0 = start;
     final p3 = end;
-    
-    // Vector from start towards corner and from end towards corner
-    final d0 = (corner - start);
-    final d3 = (corner - end);
 
-    final factor1 = 0.55 + 0.15 * smooth;
-    final factor2 = 0.55 + 0.15 * smooth;
+    final d0 = corner - start;
+    final d3 = corner - end;
 
-    final p1 = p0 + d0 * factor1;
-    final p2 = p3 + d3 * factor2;
+    final factor = 0.55 + 0.15 * smooth;
+
+    final p1 = p0 + d0 * factor;
+    final p2 = p3 + d3 * factor;
 
     path.cubicTo(p1.dx, p1.dy, p2.dx, p2.dy, p3.dx, p3.dy);
   }

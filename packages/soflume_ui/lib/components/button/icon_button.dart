@@ -3,6 +3,8 @@ import '../../foundation/theme/theme.dart';
 import '../../foundation/shapes/squircle_border.dart';
 import '../../primitives/pressable.dart';
 import '../../primitives/focus_ring.dart';
+import '../../primitives/surface.dart';
+import '../../src/button_style.dart';
 import 'button.dart';
 
 /// Shape of the icon button.
@@ -56,10 +58,10 @@ class SofIconButton extends StatelessWidget {
     final isInteractive = enabled && onPressed != null;
 
     final effectiveRadius = shape == SofIconButtonShape.circle
-        ? radii.brPill
+        ? BorderRadius.circular(dimension / 2)
         : (size == SofButtonSize.small ? radii.brSm : radii.brMd);
 
-    return SofPressable(
+    final Widget button = SofPressable(
       onPressed: isInteractive ? onPressed : null,
       enabled: isInteractive,
       focusNode: focusNode,
@@ -67,66 +69,31 @@ class SofIconButton extends StatelessWidget {
       semanticLabel: tooltip,
       pressScale: 0.94,
       builder: (context, state) {
-        Color bgColor;
-        Color iconColor;
-        BorderSide borderSide = BorderSide.none;
+        final palette = SofButtonPalette.resolve(
+          variant: variant,
+          colors: colors,
+          isHovered: state.isHovered,
+        );
 
-        switch (variant) {
-          case SofButtonVariant.filled:
-            bgColor = state.isHovered
-                ? Color.lerp(colors.accent, colors.contentPrimary, 0.08)!
-                : colors.accent;
-            iconColor = colors.onAccent;
-            break;
-
-          case SofButtonVariant.subtle:
-            bgColor = state.isHovered
-                ? colors.accent.withValues(alpha: 0.22)
-                : colors.accentSubtle;
-            iconColor = colors.accent;
-            break;
-
-          case SofButtonVariant.outlined:
-            bgColor = state.isHovered
-                ? colors.surfaceMuted
-                : const Color(0x00000000);
-            iconColor = colors.contentPrimary;
-            borderSide = BorderSide(
-              color: state.isHovered ? colors.accent : colors.outlineSubtle,
-              width: 1.2,
-            );
-            break;
-
-          case SofButtonVariant.ghost:
-            bgColor = state.isHovered
-                ? colors.surfaceMuted
-                : const Color(0x00000000);
-            iconColor = colors.contentPrimary;
-            break;
-
-          case SofButtonVariant.danger:
-            bgColor = state.isHovered
-                ? Color.lerp(colors.danger, const Color(0xFF000000), 0.12)!
-                : colors.danger;
-            iconColor = const Color(0xFFFFFFFF);
-            break;
-        }
+        final ShapeBorder shapeBorder = shape == SofIconButtonShape.circle
+            ? CircleBorder(side: palette.borderSide)
+            : SofSquircleBorder(
+                borderRadius: effectiveRadius,
+                side: palette.borderSide,
+              );
 
         final container = AnimatedContainer(
           duration: theme.motion.getEffectiveDuration(theme.motion.durationInstant),
           width: dimension,
           height: dimension,
           decoration: ShapeDecoration(
-            color: bgColor,
-            shape: SofSquircleBorder(
-              borderRadius: effectiveRadius,
-              side: borderSide,
-            ),
+            color: palette.background,
+            shape: shapeBorder,
           ),
           alignment: Alignment.center,
           child: IconTheme(
             data: IconThemeData(
-              color: iconColor,
+              color: palette.foreground,
               size: size.iconSize,
             ),
             child: icon,
@@ -139,6 +106,96 @@ class SofIconButton extends StatelessWidget {
           child: container,
         );
       },
+    );
+
+    if (tooltip != null && tooltip!.isNotEmpty) {
+      return _SofHoverTooltip(
+        message: tooltip!,
+        child: button,
+      );
+    }
+
+    return button;
+  }
+}
+
+class _SofHoverTooltip extends StatefulWidget {
+  const _SofHoverTooltip({
+    required this.message,
+    required this.child,
+  });
+
+  final String message;
+  final Widget child;
+
+  @override
+  State<_SofHoverTooltip> createState() => _SofHoverTooltipState();
+}
+
+class _SofHoverTooltipState extends State<_SofHoverTooltip> {
+  final LayerLink _link = LayerLink();
+  OverlayEntry? _entry;
+
+  void _show() {
+    if (_entry != null) return;
+    final overlay = Overlay.maybeOf(context);
+    if (overlay == null) return;
+    final theme = SoflumeTheme.of(context);
+
+    _entry = OverlayEntry(
+      builder: (_) => Positioned.fill(
+        child: IgnorePointer(
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: CompositedTransformFollower(
+              link: _link,
+              showWhenUnlinked: false,
+              targetAnchor: Alignment.bottomCenter,
+              followerAnchor: Alignment.topCenter,
+              offset: const Offset(0, 6),
+              child: SoflumeTheme(
+                data: theme,
+                child: SofSurface(
+                  variant: SofSurfaceVariant.floating,
+                  borderRadius: theme.radii.brSm,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  child: Text(
+                    widget.message,
+                    style: theme.typography.caption.copyWith(
+                      color: theme.colors.contentPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    overlay.insert(_entry!);
+  }
+
+  void _hide() {
+    _entry?.remove();
+    _entry = null;
+  }
+
+  @override
+  void dispose() {
+    _hide();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _link,
+      child: MouseRegion(
+        onEnter: (_) => _show(),
+        onExit: (_) => _hide(),
+        child: widget.child,
+      ),
     );
   }
 }

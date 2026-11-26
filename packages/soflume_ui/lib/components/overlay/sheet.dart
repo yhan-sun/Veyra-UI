@@ -135,9 +135,14 @@ Future<T?> showSofSheet<T>({
               },
               child: PopScope(
                 canPop: isDismissible,
-                child: SoflumeTheme(
-                  data: theme,
-                  child: builder(context),
+                child: Builder(
+                  builder: (routeCtx) {
+                    final hasTheme = SoflumeTheme.maybeOf(routeCtx) != null;
+                    final content = builder(routeCtx);
+                    return hasTheme
+                        ? content
+                        : SoflumeTheme(data: theme, child: content);
+                  },
                 ),
               ),
             ),
@@ -147,7 +152,7 @@ Future<T?> showSofSheet<T>({
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final curvedAnimation = CurvedAnimation(
           parent: animation,
-          curve: theme.motion.springSettle,
+          curve: theme.motion.getEffectiveCurve(theme.motion.springSettle),
           reverseCurve: Curves.easeIn,
         );
 

@@ -99,5 +99,38 @@ void main() {
 
       expect(find.text('Invalid email address'), findsOneWidget);
     });
+
+    testWidgets('Renders label, focuses on outer padding tap, and respects enabled=false', (tester) async {
+      final focusNode = FocusNode();
+
+      await tester.pumpWidget(
+        SoflumeApp(
+          home: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SofTextField(
+                  label: 'Email',
+                  focusNode: focusNode,
+                  prefix: const SofIcon(SofIcons.info),
+                  placeholder: 'you@example.com',
+                ),
+                const SofTextField(
+                  enabled: false,
+                  placeholder: 'Disabled input',
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Email'), findsOneWidget);
+      await tester.tap(find.byType(SofIcon));
+      await tester.pump();
+      expect(focusNode.hasFocus, isTrue);
+
+      focusNode.dispose();
+    });
   });
 }

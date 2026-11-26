@@ -1,6 +1,9 @@
 import 'package:flutter/widgets.dart';
+import '../../foundation/icons/icon.dart';
+import '../../foundation/icons/soflume_icons.dart';
 import '../../foundation/theme/theme.dart';
 import '../../foundation/shapes/squircle_border.dart';
+import '../../primitives/pressable.dart';
 import 'badge.dart';
 
 /// Semantic alert / notice banner card.
@@ -100,14 +103,16 @@ class SofAlert extends StatelessWidget {
           ),
           if (onClose != null) ...[
             const SizedBox(width: 8),
-            GestureDetector(
-              onTap: onClose,
-              child: Text(
-                '×',
-                style: TextStyle(
+            SofPressable(
+              onPressed: onClose,
+              semanticLabel: 'Dismiss alert',
+              pressScale: 0.9,
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: SofIcon(
+                  SofIcons.x,
+                  size: 16,
                   color: colors.contentSecondary,
-                  fontSize: 18,
-                  height: 1,
                 ),
               ),
             ),

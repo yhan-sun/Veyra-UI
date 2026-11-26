@@ -48,6 +48,29 @@ class SoflumeMotion {
     return duration;
   }
 
+  /// Returns a linear curve when [reduceMotion] is enabled, otherwise [curve].
+  Curve getEffectiveCurve(Curve curve) => reduceMotion ? Curves.linear : curve;
+
+  /// Linearly interpolates between two [SoflumeMotion] configurations.
+  static SoflumeMotion lerp(SoflumeMotion a, SoflumeMotion b, double t) {
+    return SoflumeMotion(
+      durationInstant: _lerpDuration(a.durationInstant, b.durationInstant, t),
+      durationQuick: _lerpDuration(a.durationQuick, b.durationQuick, t),
+      durationRegular: _lerpDuration(a.durationRegular, b.durationRegular, t),
+      durationExpressive: _lerpDuration(a.durationExpressive, b.durationExpressive, t),
+      springGentle: t < 0.5 ? a.springGentle : b.springGentle,
+      springSnappy: t < 0.5 ? a.springSnappy : b.springSnappy,
+      springSettle: t < 0.5 ? a.springSettle : b.springSettle,
+      reduceMotion: t < 0.5 ? a.reduceMotion : b.reduceMotion,
+    );
+  }
+
+  static Duration _lerpDuration(Duration a, Duration b, double t) {
+    return Duration(
+      microseconds: (a.inMicroseconds + (b.inMicroseconds - a.inMicroseconds) * t).round(),
+    );
+  }
+
   SoflumeMotion copyWith({
     Duration? durationInstant,
     Duration? durationQuick,

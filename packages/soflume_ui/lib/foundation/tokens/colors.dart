@@ -159,6 +159,20 @@ class SoflumeColors {
   final Color overlay;
   final bool isDark;
 
+  /// Accessible foreground color on top of [success].
+  Color get onSuccess => computeContrastColor(success);
+
+  /// Accessible foreground color on top of [warning].
+  Color get onWarning => computeContrastColor(warning);
+
+  /// Accessible foreground color on top of [danger].
+  Color get onDanger => computeContrastColor(danger);
+
+  /// High-contrast accent foreground tailored for [accentSubtle] fills.
+  Color get onAccentSubtle => isDark
+      ? Color.lerp(accent, const Color(0xFFFFFFFF), 0.35)!
+      : accent;
+
   /// Returns a copy of [SoflumeColors] with updated values.
   SoflumeColors copyWith({
     Color? canvas,

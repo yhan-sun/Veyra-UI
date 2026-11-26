@@ -26,6 +26,18 @@ class SofFocusRing extends StatelessWidget {
     final theme = SoflumeTheme.of(context);
     final effectiveRadius = borderRadius ?? theme.radii.brMd;
 
+    Radius expandRadius(Radius r) {
+      if (r.x >= 900 || r.y >= 900) return r;
+      return Radius.elliptical(r.x + ringOffset, r.y + ringOffset);
+    }
+
+    final expandedBorderRadius = BorderRadius.only(
+      topLeft: expandRadius(effectiveRadius.topLeft),
+      topRight: expandRadius(effectiveRadius.topRight),
+      bottomRight: expandRadius(effectiveRadius.bottomRight),
+      bottomLeft: expandRadius(effectiveRadius.bottomLeft),
+    );
+
     return Stack(
       fit: StackFit.passthrough,
       clipBehavior: Clip.none,
@@ -40,9 +52,7 @@ class SofFocusRing extends StatelessWidget {
             child: DecoratedBox(
               decoration: ShapeDecoration(
                 shape: SofSquircleBorder(
-                  borderRadius: BorderRadius.circular(
-                    effectiveRadius.topLeft.x + ringOffset,
-                  ),
+                  borderRadius: expandedBorderRadius,
                   side: BorderSide(
                     color: theme.colors.outlineFocus,
                     width: ringWidth,

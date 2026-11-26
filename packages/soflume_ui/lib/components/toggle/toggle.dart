@@ -36,7 +36,7 @@ class SofToggle extends StatefulWidget {
 
 class _SofToggleState extends State<SofToggle> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _thumbPosition;
+  late CurvedAnimation _thumbPosition;
   late FocusNode _focusNode;
   bool _isFocused = false;
   bool _isPressed = false;
@@ -58,6 +58,16 @@ class _SofToggleState extends State<SofToggle> with SingleTickerProviderStateMix
 
     _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.addListener(_handleFocusChange);
+    _isFocused = _focusNode.hasFocus;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final motion = SoflumeTheme.of(context).motion;
+    _controller.duration = motion.getEffectiveDuration(motion.durationRegular);
+    _thumbPosition.curve = motion.getEffectiveCurve(motion.springSnappy);
+    _thumbPosition.reverseCurve = motion.getEffectiveCurve(motion.springSettle);
   }
 
   @override
@@ -101,6 +111,7 @@ class _SofToggleState extends State<SofToggle> with SingleTickerProviderStateMix
     if (widget.focusNode == null) {
       _focusNode.dispose();
     }
+    _thumbPosition.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -148,7 +159,7 @@ class _SofToggleState extends State<SofToggle> with SingleTickerProviderStateMix
                 final t = _thumbPosition.value;
 
                 final trackColor = Color.lerp(
-                  colors.isDark ? colors.surfaceMuted : colors.surfaceMuted,
+                  colors.surfaceMuted,
                   colors.accent,
                   t,
                 )!;

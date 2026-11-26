@@ -52,16 +52,8 @@ class _DesignSystemScreenState extends State<DesignSystemScreen> with SingleTick
     return '#${c.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
   }
 
-  double _luminance(Color c) {
-    return (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b);
-  }
-
   String _contrastRatio(Color c1, Color c2) {
-    final l1 = _luminance(c1);
-    final l2 = _luminance(c2);
-    final lighter = l1 > l2 ? l1 : l2;
-    final darker = l1 > l2 ? l2 : l1;
-    final ratio = (lighter + 0.05) / (darker + 0.05);
+    final ratio = SoflumeColors.contrastRatio(c1, c2);
     return '${ratio.toStringAsFixed(1)}:1';
   }
 
@@ -312,23 +304,43 @@ class _DesignSystemScreenState extends State<DesignSystemScreen> with SingleTick
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text('物理曲线试炼场', style: typography.title.copyWith(fontWeight: FontWeight.w700)),
-                        const Spacer(),
-                        SofSegmentedControl<int>(
-                          value: _selectedCurveIndex,
-                          onChanged: (val) {
-                            setState(() => _selectedCurveIndex = val);
-                            _triggerMotion();
-                          },
-                          segments: const [
-                            SofSegment(value: 0, label: Text('Snappy 紧致')),
-                            SofSegment(value: 1, label: Text('Gentle 柔和')),
-                            SofSegment(value: 2, label: Text('Settle 柔顺')),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isNarrow = constraints.maxWidth < 560;
+                        final selector = SizedBox(
+                          width: isNarrow ? constraints.maxWidth : 340,
+                          child: SofSegmentedControl<int>(
+                            value: _selectedCurveIndex,
+                            onChanged: (val) {
+                              setState(() => _selectedCurveIndex = val);
+                              _triggerMotion();
+                            },
+                            segments: const [
+                              SofSegment(value: 0, label: Text('Snappy 紧致')),
+                              SofSegment(value: 1, label: Text('Gentle 柔和')),
+                              SofSegment(value: 2, label: Text('Settle 柔顺')),
+                            ],
+                          ),
+                        );
+                        if (isNarrow) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('物理曲线试炼场', style: typography.title.copyWith(fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 12),
+                              selector,
+                            ],
+                          );
+                        }
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: Text('物理曲线试炼场', style: typography.title.copyWith(fontWeight: FontWeight.w700)),
+                            ),
+                            selector,
                           ],
-                        ),
-                      ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 24),
 
@@ -386,15 +398,17 @@ class _DesignSystemScreenState extends State<DesignSystemScreen> with SingleTick
                     ),
                     const SizedBox(height: 18),
 
-                    Row(
+                    Wrap(
+                      spacing: 14,
+                      runSpacing: 12,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         SofButton(
                           variant: SofButtonVariant.filled,
-                          leading: const SofIcon(SofIcons.play, size: 16, color: Color(0xFFFFFFFF)),
+                          leading: const SofIcon(SofIcons.play, size: 16),
                           onPressed: _triggerMotion,
                           child: const Text('触发物理回弹'),
                         ),
-                        const SizedBox(width: 14),
                         Text(
                           '当前参数: ${_selectedCurveIndex == 0 ? "Snappy (Stiffness: 420, Damping: 32)" : _selectedCurveIndex == 1 ? "Gentle (Stiffness: 240, Damping: 28)" : "Settle (Stiffness: 300, Damping: 36)"}',
                           style: typography.caption.copyWith(color: colors.contentSecondary),
@@ -443,12 +457,13 @@ class _DesignSystemScreenState extends State<DesignSystemScreen> with SingleTick
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTypographyRow(context, 'Display 28/34', typography.display, '高端标题与展馆主视觉'),
-                    _buildTypographyRow(context, 'Headline 22/28', typography.headline, '页面级大栏目标题'),
-                    _buildTypographyRow(context, 'Title 18/24', typography.title, '卡片模块核心标题'),
-                    _buildTypographyRow(context, 'Body 14/20', typography.body, '正文、表单录入与常规交互信息'),
-                    _buildTypographyRow(context, 'Caption 12/16', typography.caption, '辅助描述、状态角标与次要提示'),
-                    _buildTypographyRow(context, 'Code 13/18', typography.code, '等宽技术代码片段展示'),
+                    _buildTypographyRow(context, 'Display 32/40', typography.display, '高端标题与展馆主视觉'),
+                    _buildTypographyRow(context, 'Headline 26/34', typography.headline, '页面级大栏目标题'),
+                    _buildTypographyRow(context, 'Title 20/28', typography.title, '卡片模块核心标题'),
+                    _buildTypographyRow(context, 'Body 15/23', typography.body, '正文、表单录入与常规交互信息'),
+                    _buildTypographyRow(context, 'Label 13/20', typography.label, '控件标签、分段选项卡与徽章'),
+                    _buildTypographyRow(context, 'Caption 12/18', typography.caption, '辅助描述、状态角标与次要提示'),
+                    _buildTypographyRow(context, 'Code 13/20', typography.code, '等宽技术代码片段展示'),
                     const SizedBox(height: 20),
                     const DividerBorder(),
                     const SizedBox(height: 20),

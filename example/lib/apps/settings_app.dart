@@ -50,7 +50,7 @@ class _SettingsAppState extends State<SettingsApp> {
   }
 
   void _showNetworkSheet() {
-    showSofSheet(
+    showSofSheet<void>(
       context: context,
       builder: (context) {
         return SofSheet(
@@ -354,13 +354,16 @@ class _SettingsAppState extends State<SettingsApp> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('原彩柔光舒适显示 (TrueTone)', style: typography.body.copyWith(fontWeight: FontWeight.w600)),
-                            Text('根据环境光动态微调色温与柔光漫射', style: typography.caption.copyWith(color: colors.contentSecondary)),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('原彩柔光舒适显示 (TrueTone)', style: typography.body.copyWith(fontWeight: FontWeight.w600)),
+                              Text('根据环境光动态微调色温与柔光漫射', style: typography.caption.copyWith(color: colors.contentSecondary)),
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 12),
                         SofToggle(
                           value: _eyeComfort,
                           onChanged: (v) => setState(() => _eyeComfort = v),
@@ -416,13 +419,16 @@ class _SettingsAppState extends State<SettingsApp> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('系统级自然触感反馈 (OriginOS Haptic)', style: typography.body.copyWith(fontWeight: FontWeight.w600)),
-                            Text('拟态机械弹簧阻尼微振感', style: typography.caption.copyWith(color: colors.contentSecondary)),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('系统级自然触感反馈 (OriginOS Haptic)', style: typography.body.copyWith(fontWeight: FontWeight.w600)),
+                              Text('拟态机械弹簧阻尼微振感', style: typography.caption.copyWith(color: colors.contentSecondary)),
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 12),
                         SofToggle(
                           value: _hapticFeedback,
                           luminous: true,
@@ -499,7 +505,7 @@ class _SettingsAppState extends State<SettingsApp> {
 
   Widget _buildDivider(SoflumeColors colors) {
     return Padding(
-      padding: const EdgeInsets.only(left: 56),
+      padding: const EdgeInsets.only(left: 64),
       child: Container(
         height: 0.8,
         color: colors.outlineSubtle,

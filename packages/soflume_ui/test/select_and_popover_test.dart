@@ -108,6 +108,45 @@ void main() {
       expect(find.text('Option 2'), findsNothing);
       expect(find.byType(CompositedTransformFollower), findsNothing);
     });
+
+    testWidgets('Keyboard ArrowDown/ArrowUp/Enter navigates enabled options', (tester) async {
+      String? selectedValue = 'opt1';
+
+      await tester.pumpWidget(
+        StatefulBuilder(
+          builder: (context, setState) {
+            return SoflumeApp(
+              home: Center(
+                child: SizedBox(
+                  width: 260,
+                  child: SofSelect<String>(
+                    autofocus: true,
+                    items: testItems,
+                    value: selectedValue,
+                    onChanged: (val) => setState(() => selectedValue = val),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Open via Enter
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Option 2'), findsOneWidget);
+
+      // Move to Option 2 and confirm
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+
+      expect(selectedValue, equals('opt2'));
+      expect(find.byType(CompositedTransformFollower), findsNothing);
+    });
   });
 
   group('SofPopover Tests', () {
@@ -188,6 +227,27 @@ void main() {
       // Because it's at the bottom edge, it should have flipped from bottom to top
       expect(follower.targetAnchor, equals(Alignment.topLeft));
       expect(follower.followerAnchor, equals(Alignment.bottomLeft));
+    });
+
+    testWidgets('SofPopover opens when wrapping an interactive SofButton', (tester) async {
+      await tester.pumpWidget(
+        SoflumeApp(
+          home: Center(
+            child: SofPopover(
+              content: const Text('Button Popover Body'),
+              child: SofButton(
+                onPressed: () {},
+                child: const Text('Button Trigger'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Button Trigger'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Button Popover Body'), findsOneWidget);
     });
   });
 }

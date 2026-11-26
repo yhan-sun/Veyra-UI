@@ -68,16 +68,15 @@ class SofSurface extends StatelessWidget {
           : BorderSide.none,
     );
 
-    // If reduced transparency is requested, degrade frost and ambient to solid
+    // If reduced transparency is requested, degrade frost to solid
     final effectiveVariant = theme.reducedTransparency && variant == SofSurfaceVariant.frost
         ? SofSurfaceVariant.solid
         : variant;
 
-    Widget content = Container(
+    Widget content = SizedBox(
       width: width,
       height: height,
-      padding: padding,
-      child: child,
+      child: padding != null ? Padding(padding: padding!, child: child) : child,
     );
 
     switch (effectiveVariant) {
@@ -141,10 +140,7 @@ class SofSurface extends StatelessWidget {
         );
 
       case SofSurfaceVariant.frost:
-        final frostBg = color ??
-            (isDark
-                ? const Color(0xD0131722)
-                : const Color(0xE8FFFFFF));
+        final frostBg = color ?? colors.surface.withValues(alpha: isDark ? 0.82 : 0.88);
         return Container(
           margin: margin,
           child: ClipPath(
@@ -165,7 +161,10 @@ class SofSurface extends StatelessWidget {
 
       case SofSurfaceVariant.ambient:
         final baseColor = color ?? colors.surface;
-        final glowColor = colors.accent.withValues(alpha: isDark ? 0.14 : 0.08);
+        final tintedStart = Color.alphaBlend(
+          colors.accent.withValues(alpha: isDark ? 0.14 : 0.06),
+          baseColor,
+        );
         return Container(
           margin: margin,
           decoration: ShapeDecoration(
@@ -173,7 +172,7 @@ class SofSurface extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color.lerp(baseColor, glowColor, 0.6)!,
+                tintedStart,
                 baseColor,
               ],
             ),

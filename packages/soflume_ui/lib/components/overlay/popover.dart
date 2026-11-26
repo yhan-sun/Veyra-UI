@@ -22,6 +22,7 @@ class SofPopover extends StatefulWidget {
     this.placement = SofPopoverPlacement.bottom,
     this.offset = 8.0,
     this.barrierDismissible = true,
+    this.toggleOnTap = true,
     this.borderRadius,
     this.onDismiss,
     this.focusNode,
@@ -42,6 +43,9 @@ class SofPopover extends StatefulWidget {
   /// Whether tapping outside the popover dismisses it.
   final bool barrierDismissible;
 
+  /// Whether tapping the trigger automatically toggles the popover.
+  final bool toggleOnTap;
+
   /// Custom corner radius for the floating popover surface.
   final BorderRadius? borderRadius;
 
@@ -61,6 +65,7 @@ class SofPopoverState extends State<SofPopover> {
   late FocusNode _triggerFocusNode;
   OverlayEntry? _overlayEntry;
   bool _isOpen = false;
+  Offset? _pointerDownPos;
 
   bool get isOpen => _isOpen;
 
@@ -93,7 +98,6 @@ class SofPopoverState extends State<SofPopover> {
     final screenSize = mediaQuery.size;
     final padding = mediaQuery.padding;
 
-    // Intelligent edge flipping
     final spaceBelow = screenSize.height - anchorRect.bottom - padding.bottom;
     final spaceAbove = anchorRect.top - padding.top;
     final spaceRight = screenSize.width - anchorRect.right - padding.right;
@@ -116,11 +120,11 @@ class SofPopoverState extends State<SofPopover> {
           layerLink: _layerLink,
           placement: resolvedPlacement,
           offset: widget.offset,
+          maxWidth: (screenSize.width - padding.horizontal - 24).clamp(160.0, 400.0),
           barrierDismissible: widget.barrierDismissible,
           borderRadius: widget.borderRadius,
           theme: theme,
           onClose: close,
-          triggerFocusNode: _triggerFocusNode,
           content: widget.content,
         );
       },
@@ -137,7 +141,6 @@ class SofPopoverState extends State<SofPopover> {
     _isOpen = false;
     if (mounted) {
       setState(() {});
-      // Restore focus to trigger element for seamless keyboard navigation
       _triggerFocusNode.requestFocus();
     }
     widget.onDismiss?.call();
@@ -170,10 +173,32 @@ class SofPopoverState extends State<SofPopover> {
       link: _layerLink,
       child: Focus(
         focusNode: _triggerFocusNode,
-        child: GestureDetector(
+        onKeyEvent: (node, event) {
+          if (widget.toggleOnTap &&
+              event is KeyDownEvent &&
+              (event.logicalKey == LogicalKeyboardKey.enter ||
+                  event.logicalKey == LogicalKeyboardKey.space)) {
+            toggle();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: Listener(
           key: _anchorKey,
-          behavior: HitTestBehavior.opaque,
-          onTap: toggle,
+          behavior: HitTestBehavior.translucent,
+          onPointerDown: widget.toggleOnTap
+              ? (event) => _pointerDownPos = event.position
+              : null,
+          onPointerUp: widget.toggleOnTap
+              ? (event) {
+                  final down = _pointerDownPos;
+                  _pointerDownPos = null;
+                  if (down != null && (event.position - down).distance < 18.0) {
+                    toggle();
+                  }
+                }
+              : null,
+          onPointerCancel: (_) => _pointerDownPos = null,
           child: widget.child,
         ),
       ),
@@ -186,22 +211,22 @@ class _SofPopoverOverlay extends StatefulWidget {
     required this.layerLink,
     required this.placement,
     required this.offset,
+    required this.maxWidth,
     required this.barrierDismissible,
     required this.borderRadius,
     required this.theme,
     required this.onClose,
-    required this.triggerFocusNode,
     required this.content,
   });
 
   final LayerLink layerLink;
   final SofPopoverPlacement placement;
   final double offset;
+  final double maxWidth;
   final bool barrierDismissible;
   final BorderRadius? borderRadius;
   final SoflumeThemeData theme;
   final VoidCallback onClose;
-  final FocusNode triggerFocusNode;
   final Widget content;
 
   @override
@@ -214,6 +239,7 @@ class _SofPopoverOverlayState extends State<_SofPopoverOverlay>
   late final AnimationController _animController;
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _fadeAnimation;
+  bool _isClosing = false;
 
   @override
   void initState() {
@@ -231,9 +257,17 @@ class _SofPopoverOverlayState extends State<_SofPopoverOverlay>
     );
 
     _scaleAnimation = Tween<double>(begin: 0.92, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: widget.theme.motion.springGentle),
+      CurvedAnimation(
+        parent: _animController,
+        curve: widget.theme.motion.getEffectiveCurve(widget.theme.motion.springGentle),
+        reverseCurve: Curves.easeIn,
+      ),
     );
-    _fadeAnimation = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+    _fadeAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
+    );
 
     _animController.forward();
   }
@@ -246,7 +280,13 @@ class _SofPopoverOverlayState extends State<_SofPopoverOverlay>
   }
 
   void _handleDismiss() {
-    widget.onClose();
+    if (_isClosing) return;
+    _isClosing = true;
+    _animController.reverse().then((_) {
+      if (mounted) {
+        widget.onClose();
+      }
+    });
   }
 
   Alignment _getTargetAnchor() {
@@ -307,33 +347,35 @@ class _SofPopoverOverlayState extends State<_SofPopoverOverlay>
       },
       child: Stack(
         children: [
-          // Dismissible full-screen backdrop
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: widget.barrierDismissible ? _handleDismiss : null,
-              child: const ColoredBox(color: Color(0x00000000)),
+          if (widget.barrierDismissible)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: _handleDismiss,
+                child: const ColoredBox(color: Color(0x00000000)),
+              ),
             ),
-          ),
 
-          // Scroll-following positioned popover content
           CompositedTransformFollower(
             link: widget.layerLink,
             showWhenUnlinked: false,
             targetAnchor: _getTargetAnchor(),
             followerAnchor: _getFollowerAnchor(),
             offset: _getFollowerOffset(),
-            child: SoflumeTheme(
-              data: widget.theme,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: SofSurface(
-                    variant: SofSurfaceVariant.floating,
-                    borderRadius: effectiveRadius,
-                    padding: const EdgeInsets.all(12.0),
-                    child: widget.content,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: widget.maxWidth),
+              child: SoflumeTheme(
+                data: widget.theme,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: SofSurface(
+                      variant: SofSurfaceVariant.floating,
+                      borderRadius: effectiveRadius,
+                      padding: const EdgeInsets.all(12.0),
+                      child: widget.content,
+                    ),
                   ),
                 ),
               ),

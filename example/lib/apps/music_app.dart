@@ -75,7 +75,7 @@ class _MusicAppState extends State<MusicApp> {
   }
 
   void _showQueueSheet() {
-    showSofSheet(
+    showSofSheet<void>(
       context: context,
       builder: (context) {
         return SofSheet(
@@ -390,36 +390,33 @@ class _MusicAppState extends State<MusicApp> {
                         },
                       ),
                       // Giant Center Play/Pause Spring Button
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: themeAccent.withValues(alpha: 0.4),
-                              blurRadius: 20,
-                              offset: const Offset(0, 6),
+                      SofPressable(
+                        onPressed: () => setState(() => _isPlaying = !_isPlaying),
+                        pressScale: 0.92,
+                        semanticLabel: _isPlaying ? 'Pause' : 'Play',
+                        child: Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [themeAccent, Color.lerp(themeAccent, const Color(0xFF000000), 0.25)!],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                          ],
-                        ),
-                        child: GestureDetector(
-                          onTap: () => setState(() => _isPlaying = !_isPlaying),
-                          child: Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [themeAccent, Color.lerp(themeAccent, const Color(0xFF000000), 0.25)!],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                            boxShadow: [
+                              BoxShadow(
+                                color: themeAccent.withValues(alpha: 0.4),
+                                blurRadius: 20,
+                                offset: const Offset(0, 6),
                               ),
-                            ),
-                            alignment: Alignment.center,
-                            child: SofIcon(
-                              _isPlaying ? SofIcons.pause : SofIcons.play,
-                              size: 26,
-                              color: const Color(0xFFFFFFFF),
-                            ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: SofIcon(
+                            _isPlaying ? SofIcons.pause : SofIcons.play,
+                            size: 26,
+                            color: const Color(0xFFFFFFFF),
                           ),
                         ),
                       ),

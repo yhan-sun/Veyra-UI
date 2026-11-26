@@ -1,35 +1,37 @@
 {
   "name": "Soflume UI",
-  "version": "1.0.0-proposal",
-  "description": "Draft design tokens for the Soflume UI Soft Lumen visual system. Not a published library.",
+  "version": "1.0.0",
+  "description": "Design tokens for the Soflume UI Soft Lumen 2.0 visual system, aligned with SoflumeColors, SoflumeSpacing, SoflumeRadii, SoflumeTypography, and SoflumeMotion.",
   "color": {
     "light": {
-      "canvas": "#F6F7FB",
+      "canvas": "#F8FAFC",
       "surface": "#FFFFFF",
       "surfaceRaised": "#FFFFFF",
-      "surfaceMuted": "#EDF0F7",
-      "contentPrimary": "#1B2030",
-      "contentSecondary": "#697184",
-      "outlineSubtle": "#E3E7F0",
-      "accent": "#5362E8",
+      "surfaceMuted": "#F1F5F9",
+      "contentPrimary": "#0F172A",
+      "contentSecondary": "#475569",
+      "contentTertiary": "#94A3B8",
+      "outlineSubtle": "#E2E8F0",
+      "accent": "#4F46E5",
       "onAccent": "#FFFFFF",
-      "success": "#258867",
-      "warning": "#9F6A1C",
-      "danger": "#C94459"
+      "success": "#059669",
+      "warning": "#D97706",
+      "danger": "#E11D48"
     },
     "dark": {
-      "canvas": "#101218",
-      "surface": "#1A1D25",
-      "surfaceRaised": "#232735",
-      "surfaceMuted": "#282C39",
-      "contentPrimary": "#F1F3FA",
-      "contentSecondary": "#ADB4C4",
-      "outlineSubtle": "#353A48",
-      "accent": "#9EA8FF",
-      "onAccent": "#11162C",
-      "success": "#75D6AD",
-      "warning": "#F4C47B",
-      "danger": "#FF8B9A"
+      "canvas": "#0B0D14",
+      "surface": "#131722",
+      "surfaceRaised": "#191F2E",
+      "surfaceMuted": "#1E2538",
+      "contentPrimary": "#F8FAFC",
+      "contentSecondary": "#94A3B8",
+      "contentTertiary": "#64748B",
+      "outlineSubtle": "#242C3F",
+      "accent": "#6366F1",
+      "onAccent": "#FFFFFF",
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "danger": "#F43F5E"
     }
   },
   "spacing": [
@@ -57,32 +59,44 @@
     "display": {
       "fontSize": 32,
       "lineHeight": 40,
-      "fontWeight": 650
+      "fontWeight": 600,
+      "letterSpacing": -0.5
     },
     "headline": {
       "fontSize": 26,
       "lineHeight": 34,
-      "fontWeight": 650
+      "fontWeight": 600,
+      "letterSpacing": -0.3
     },
     "title": {
       "fontSize": 20,
       "lineHeight": 28,
-      "fontWeight": 620
+      "fontWeight": 600,
+      "letterSpacing": -0.2
     },
     "body": {
       "fontSize": 15,
       "lineHeight": 23,
-      "fontWeight": 400
+      "fontWeight": 400,
+      "letterSpacing": 0
     },
     "label": {
       "fontSize": 13,
       "lineHeight": 20,
-      "fontWeight": 550
+      "fontWeight": 500,
+      "letterSpacing": 0.1
     },
     "caption": {
       "fontSize": 12,
       "lineHeight": 18,
-      "fontWeight": 400
+      "fontWeight": 400,
+      "letterSpacing": 0.15
+    },
+    "code": {
+      "fontSize": 13,
+      "lineHeight": 20,
+      "fontWeight": 400,
+      "fontFamily": "monospace"
     }
   },
   "motion": {
@@ -96,17 +110,20 @@
       "gentle": {
         "mass": 1,
         "stiffness": 240,
-        "damping": 28
+        "damping": 28,
+        "timeScale": 0.85
       },
       "snappy": {
         "mass": 1,
         "stiffness": 420,
-        "damping": 32
+        "damping": 32,
+        "timeScale": 1.0
       },
       "settle": {
         "mass": 1,
         "stiffness": 300,
-        "damping": 36
+        "damping": 36,
+        "timeScale": 0.9
       }
     }
   },
@@ -126,6 +143,7 @@
   "material": [
     "solid",
     "frost",
-    "ambient"
+    "ambient",
+    "floating"
   ]
 }

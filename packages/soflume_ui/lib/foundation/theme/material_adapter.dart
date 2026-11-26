@@ -7,6 +7,11 @@ class SoflumeThemeExtension extends ThemeExtension<SoflumeThemeExtension> {
 
   final SoflumeThemeData data;
 
+  /// Looks up [SoflumeThemeData] attached to the nearest Material [Theme], if any.
+  static SoflumeThemeData? maybeOf(BuildContext context) {
+    return Theme.of(context).extension<SoflumeThemeExtension>()?.data;
+  }
+
   @override
   ThemeExtension<SoflumeThemeExtension> copyWith({SoflumeThemeData? data}) {
     return SoflumeThemeExtension(data ?? this.data);
